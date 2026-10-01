@@ -397,10 +397,17 @@ def render_qml(snap: dict) -> str:
     return "".join(out)
 
 
+def _rel(path: Path) -> str:
+    try:
+        return path.relative_to(ROOT).as_posix()
+    except ValueError:
+        return str(path)
+
+
 def check_qmldir() -> list[str]:
     lines = QMLDIR.read_text().splitlines() if QMLDIR.is_file() else []
     if SINGLETON_LINE not in lines:
-        return [f"{QMLDIR.relative_to(ROOT)} lacks `{SINGLETON_LINE}`"]
+        return [f"{_rel(QMLDIR)} lacks `{SINGLETON_LINE}`"]
     return []
 
 
@@ -436,12 +443,12 @@ def main(argv: list[str] | None = None) -> int:
         expected = render_qml(snap)
         if not args.check:
             THEME_QML.write_text(expected)
-            print(f"wrote {THEME_QML.relative_to(ROOT)} ({len(snap['tokens'])} tokens)")
+            print(f"wrote {_rel(THEME_QML)} ({len(snap['tokens'])} tokens)")
             return 0
 
         problems = check_qmldir()
         if not THEME_QML.is_file() or THEME_QML.read_text() != expected:
-            problems.append(f"{THEME_QML.relative_to(ROOT)} is stale: run `uv run python tools/gen_tokens.py`")
+            problems.append(f"{_rel(THEME_QML)} is stale: run `uv run python tools/gen_tokens.py`")
         src = find_source(args.source)
         if src is None:
             msg = "registry source not found (no --from, $SCSHAFE_UI_DIR or ../scshafe-ui)"
