@@ -1,2 +1,3 @@
 module Scshafe.Ui
 singleton SuiTheme 1.0 SuiTheme.qml
+SuiButton 1.0 SuiButton.qml
