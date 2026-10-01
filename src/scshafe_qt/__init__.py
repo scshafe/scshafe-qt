@@ -17,6 +17,7 @@ The module needs PySide6's Qt Quick and Qt Quick Controls (Templates), both in
 
 from __future__ import annotations
 
+import sys
 from importlib.resources import files
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -41,9 +42,43 @@ def qml_import_path() -> str:
 def register(engine: QQmlEngine) -> str:
     """Make ``import Scshafe.Ui`` resolvable in ``engine``; returns the import path added.
 
-    Idempotent: the path is added once per engine.
+    Idempotent: the path is added once per engine. Under the ``offscreen`` platform on
+    macOS it also gives the application an installed font family (see
+    :func:`_settle_offscreen_font`).
     """
     path = qml_import_path()
     if path not in engine.importPathList():
         engine.addImportPath(path)
+    _settle_offscreen_font()
     return path
+
+
+#: Installed on every supported macOS; the first one present is used.
+_MACOS_FAMILIES = ("Helvetica Neue", "Helvetica", "Arial")
+
+
+def _settle_offscreen_font() -> None:
+    """Headless runs on macOS: replace the offscreen platform's default font family.
+
+    The ``offscreen`` platform's default family is "Sans Serif", which macOS doesn't have, so
+    the first text drawn makes Qt search its alias table and warn ("Populating font family
+    aliases took … ms") -- a warning that fails tests run with warnings as errors. The native
+    platform (cocoa) uses the system font and is untouched, as is Linux, where fontconfig
+    resolves "Sans Serif".
+    """
+    if sys.platform != "darwin":
+        return
+    from PySide6.QtGui import QFontDatabase, QGuiApplication
+
+    app = QGuiApplication.instance()
+    if app is None or QGuiApplication.platformName() != "offscreen":
+        return
+    installed = set(QFontDatabase.families())
+    font = QGuiApplication.font()
+    if font.family() in installed:
+        return
+    for family in _MACOS_FAMILIES:
+        if family in installed:
+            font.setFamily(family)
+            QGuiApplication.setFont(font)
+            return
