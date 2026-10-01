@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
 import scshafe_qt
 from PySide6.QtQml import QQmlComponent, QQmlEngine
 
@@ -37,6 +38,7 @@ def test_module_loads_after_register(qapp):
     assert obj is not None, [e.toString() for e in comp.errors()]
 
 
+@pytest.mark.qt_log_level_fail("CRITICAL")  # creating the broken component warns, as intended
 def test_module_is_not_found_without_register(qapp):
     engine = QQmlEngine()
     comp, obj = _load(engine)

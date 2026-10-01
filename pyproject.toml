@@ -56,6 +56,8 @@ include = [
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 qt_api = "pyside6"
+# Any Qt/QML warning (binding errors, unknown properties, ...) fails the test.
+qt_log_level_fail = "WARNING"
 
 [tool.uv]
 # The toolchain pin (LIB-04's analogue): CI's setup-uv reads this version.
