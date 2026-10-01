@@ -242,15 +242,43 @@ QtObject {
         "--sui-space-2xl": "space2xl"
     })
 
-    // ---- Native extensions (not in the registry) --------------------------
-    // Values the web library writes as literals in components.css; kept here so
-    // native components share them. Changing one is a scshafe-qt change.
+    // ==== NATIVE-ONLY TOKENS =============================================
+    // Not in the @scshafe/ui registry: defined in tools/gen_tokens.py (the
+    // NATIVE-ONLY section) and checked by tests/test_tokens.py. Values the web
+    // library writes as literals in components.css live here too, so native
+    // components share them. Changing one is a scshafe-qt change.
+
+    // ---- Focus, disabled, control metrics ------------------------------
     readonly property int focusRingWidth: 2       // :focus-visible outline width
     readonly property int focusRingOffset: 2      // :focus-visible outline-offset
     readonly property real disabledOpacity: 0.48  // .sui-button:disabled
     readonly property int controlPaddingX: 10     // .sui-button padding
     readonly property int controlPaddingY: 6
-    // Type scale (pixel sizes the stylesheets use) and weights.
+    readonly property int controlHeight: 28       // buttons, fields, icon buttons
+    readonly property int rowHeight: 30           // sidebar items
+    readonly property int listRowHeight: 52       // two-line list rows
+    readonly property int chipHeight: 20
+    readonly property int badgeHeight: 18
+    readonly property int iconSize: 16
+    readonly property int iconSizeSm: 12
+    readonly property int statusDotSize: 8
+    readonly property int splitterHandleWidth: 8  // hit area; the drawn line is 1px
+    readonly property int splitterStep: 16        // arrow-key resize step (Shift: x4)
+
+    // ---- Layout defaults ------------------------------------------------
+    readonly property int sidebarWidth: 232
+    readonly property int sidebarMinWidth: 160
+    readonly property int sidebarMaxWidth: 400
+    readonly property int inspectorWidth: 320
+    readonly property int inspectorMinWidth: 240
+    readonly property int inspectorMaxWidth: 560
+    readonly property int contentMinWidth: 280
+    readonly property int dialogWidth: 440
+    readonly property int sheetWidth: 400
+    readonly property int toastWidth: 360
+    readonly property int toastTimeout: 5000      // ms a toast stays (0 = until dismissed)
+
+    // ---- Type scale (pixel sizes the stylesheets use) and weights -------
     readonly property int fontSizeXs: 11
     readonly property int fontSizeSm: 12
     readonly property int fontSizeMd: 13
@@ -263,8 +291,124 @@ QtObject {
     readonly property int fontWeightStrong: Font.DemiBold  // 600
     readonly property int fontWeightBold: Font.Bold        // 700
 
+    // ---- Monospace face ---------------------------------------------------
+    // --sui-mono is a CSS stack; Qt takes one family. `monoFamily` is the first
+    // installed candidate for the platform (assign it to override):
+    //   macos: SF Mono, Menlo, Monaco
+    //   windows: Cascadia Mono, Consolas, Courier New
+    //   linux: monospace, DejaVu Sans Mono, Noto Sans Mono, Liberation Mono, Ubuntu Mono
+    //   fallback: monospace
+    readonly property string platformName: Qt.platform.os === "osx" || Qt.platform.os === "macos" ? "macos"
+        : Qt.platform.os === "windows" ? "windows" : "linux"
+    readonly property var monoCandidates: ({ macos: ["SF Mono", "Menlo", "Monaco"], windows: ["Cascadia Mono", "Consolas", "Courier New"], linux: ["monospace", "DejaVu Sans Mono", "Noto Sans Mono", "Liberation Mono", "Ubuntu Mono"] })[platformName]
+    property string monoFamily: _firstInstalled(monoCandidates, "monospace")
+
+    // ---- Tones ------------------------------------------------------------
+    // A tone is "neutral" | "info" | "ok" | "warn" | "danger", a bucket
+    // "bucket1".."bucket8" (or its number), or a registry tone name
+    // ("green", "blue", "yellow", "orange", "red", "purple").
+    // toneBase: dot / border / tint colour; toneText: text on toneFill.
+    readonly property real toneTint: 0.12     // fill under tone text (contrast-checked)
+    readonly property real toneBorderAmount: 0.45
+    readonly property var statusTones: ["neutral", "info", "ok", "warn", "danger"]
+
+    // ---- Bucket palette (8 categorical tones) --------------------------
+    // bucket1: blue
+    readonly property color bucket1: dark ? "#6dadff" : "#2f7dd9"
+    readonly property color bucket1Text: dark ? "#96c4ff" : "#0053a4"
+    // bucket2: teal
+    readonly property color bucket2: dark ? "#03c3c3" : "#018a8b"
+    readonly property color bucket2Text: dark ? "#36d5d5" : "#045f5f"
+    // bucket3: green
+    readonly property color bucket3: dark ? "#67c377" : "#108f3b"
+    readonly property color bucket3Text: dark ? "#83d48f" : "#046325"
+    // bucket4: olive
+    readonly property color bucket4: dark ? "#adb33c" : "#7e8205"
+    readonly property color bucket4Text: dark ? "#c0c661" : "#565901"
+    // bucket5: amber
+    readonly property color bucket5: dark ? "#db9e2e" : "#a47204"
+    readonly property color bucket5Text: dark ? "#ebb55a" : "#714e04"
+    // bucket6: rust
+    readonly property color bucket6: dark ? "#f58967" : "#cd5630"
+    readonly property color bucket6Text: dark ? "#fea88d" : "#9c2e00"
+    // bucket7: rose
+    readonly property color bucket7: dark ? "#ee83af" : "#c65085"
+    readonly property color bucket7Text: dark ? "#fea5c8" : "#9a265f"
+    // bucket8: violet
+    readonly property color bucket8: dark ? "#b995f6" : "#9065d0"
+    readonly property color bucket8Text: dark ? "#cdb3ff" : "#6a3ea5"
+    readonly property int bucketCount: 8
+    readonly property var bucketNames: ["blue", "teal", "green", "olive", "amber", "rust", "rose", "violet"]
+    readonly property var bucketColors: [bucket1, bucket2, bucket3, bucket4, bucket5, bucket6, bucket7, bucket8]
+    readonly property var bucketTextColors: [bucket1Text, bucket2Text, bucket3Text, bucket4Text, bucket5Text, bucket6Text, bucket7Text, bucket8Text]
+
+    function bucketNumber(tone) {
+        if (typeof tone === "number")
+            return tone >= 1 && tone <= bucketCount ? Math.floor(tone) : 0
+        const m = /^bucket([0-9]+)$/.exec(String(tone))
+        const n = m ? Number(m[1]) : 0
+        return n >= 1 && n <= bucketCount ? n : 0
+    }
+    function toneBase(tone) {
+        const b = bucketNumber(tone)
+        if (b > 0)
+            return bucketColors[b - 1]
+        switch (tone) {
+        case "info": case "blue": return toneBlue
+        case "ok": case "green": return toneGreen
+        case "warn": case "yellow": return toneYellow
+        case "orange": return toneOrange
+        case "danger": case "red": return toneRed
+        case "purple": return tonePurple
+        default: return muted
+        }
+    }
+    function toneText(tone) {
+        const b = bucketNumber(tone)
+        if (b > 0)
+            return bucketTextColors[b - 1]
+        switch (tone) {
+        case "info": case "blue": return toneBlueText
+        case "ok": case "green": return toneGreenText
+        case "warn": case "yellow": return toneYellowText
+        case "orange": return toneOrangeText
+        case "danger": case "red": return toneRedText
+        case "purple": return tonePurpleText
+        default: return text
+        }
+    }
+    function isNeutral(tone) {
+        return bucketNumber(tone) === 0 && ["info", "ok", "warn", "danger", "blue", "green",
+                                            "yellow", "orange", "red", "purple"].indexOf(tone) < 0
+    }
+    // The fill under tone text: the tone at toneTint, or --sui-tint for neutral.
+    function toneFill(tone) {
+        return isNeutral(tone) ? tint : alpha(toneBase(tone), toneTint)
+    }
+    function toneBorder(tone) {
+        return isNeutral(tone) ? line : alpha(toneBase(tone), toneBorderAmount)
+    }
+    // Health dots: "ok" | "held" | "failing" | "none".
+    function statusColor(status) {
+        switch (status) {
+        case "ok": return ok
+        case "held": return toneYellow
+        case "failing": return toneRed
+        default: return "transparent"
+        }
+    }
+
     // `color` at `amount` of its opacity: CSS color-mix(in srgb, c N%, transparent).
     function alpha(c, amount) {
         return Qt.rgba(c.r, c.g, c.b, c.a * amount)
+    }
+
+    function _firstInstalled(candidates, fallback) {
+        const installed = Qt.fontFamilies().map(f => f.toLowerCase())
+        for (const family of candidates) {
+            if (family === "monospace" || installed.indexOf(family.toLowerCase()) >= 0)
+                return family
+        }
+        return fallback
     }
 }

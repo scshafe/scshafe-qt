@@ -317,16 +317,86 @@ QtObject {{
     readonly property string registryHash: {registry_hash_json}
 """
 
-_NATIVE = """
-    // ---- Native extensions (not in the registry) --------------------------
-    // Values the web library writes as literals in components.css; kept here so
-    // native components share them. Changing one is a scshafe-qt change.
+# --------------------------------------------------------------------------
+# NATIVE-ONLY TOKENS (scshafe-qt; not in the @scshafe/ui registry)
+# --------------------------------------------------------------------------
+# Everything below is defined here, not in the registry: --refresh never
+# touches it, `--check` keeps SuiTheme.qml in step with it, and
+# tests/test_tokens.py checks it (parity, contrast, distinctness).
+
+# Tint and border strength of a tone (chip, badge, banner, toast). TONE_TINT is
+# the web library's TONE_TINT (test/contrast.test.mjs): the strongest tone tint
+# that tone text sits on.
+TONE_TINT = 0.12
+TONE_BORDER = 0.45
+
+# The bucket palette: eight categorical tones for user-defined groups (a mail
+# sorter's buckets, labels, projects). Chosen in OKLCH with hues about 45 degrees
+# apart (blue 255, teal 195, green 148, olive 112, amber 78, rust 38, rose 355,
+# violet 300). `base` is the dot, border (TONE_BORDER) and tint (TONE_TINT)
+# colour; `text` is text on that tint. Contracts (tests/test_tokens.py), both
+# themes: text >= 4.5:1 on the tint over every surface and selection/hover/tint
+# overlay; base >= 3:1 on every surface; bases pairwise distinct (OKLab).
+#   name      light (base, text)        dark (base, text)
+NATIVE_BUCKETS = (
+    ("blue", ("#2f7dd9", "#0053a4"), ("#6dadff", "#96c4ff")),
+    ("teal", ("#018a8b", "#045f5f"), ("#03c3c3", "#36d5d5")),
+    ("green", ("#108f3b", "#046325"), ("#67c377", "#83d48f")),
+    ("olive", ("#7e8205", "#565901"), ("#adb33c", "#c0c661")),
+    ("amber", ("#a47204", "#714e04"), ("#db9e2e", "#ebb55a")),
+    ("rust", ("#cd5630", "#9c2e00"), ("#f58967", "#fea88d")),
+    ("rose", ("#c65085", "#9a265f"), ("#ee83af", "#fea5c8")),
+    ("violet", ("#9065d0", "#6a3ea5"), ("#b995f6", "#cdb3ff")),
+)
+
+# Monospace family per platform (--sui-mono is a CSS stack; a Qt font takes one
+# family). The first installed candidate wins; Linux uses fontconfig's
+# `monospace` alias, which resolves to the user's configured monospace face.
+MONO_FAMILIES = {
+    "macos": ("SF Mono", "Menlo", "Monaco"),
+    "windows": ("Cascadia Mono", "Consolas", "Courier New"),
+    "linux": ("monospace", "DejaVu Sans Mono", "Noto Sans Mono", "Liberation Mono", "Ubuntu Mono"),
+}
+MONO_FALLBACK = "monospace"
+
+_NATIVE_HEAD = """
+    // ==== NATIVE-ONLY TOKENS =============================================
+    // Not in the @scshafe/ui registry: defined in tools/gen_tokens.py (the
+    // NATIVE-ONLY section) and checked by tests/test_tokens.py. Values the web
+    // library writes as literals in components.css live here too, so native
+    // components share them. Changing one is a scshafe-qt change.
+
+    // ---- Focus, disabled, control metrics ------------------------------
     readonly property int focusRingWidth: 2       // :focus-visible outline width
     readonly property int focusRingOffset: 2      // :focus-visible outline-offset
     readonly property real disabledOpacity: 0.48  // .sui-button:disabled
     readonly property int controlPaddingX: 10     // .sui-button padding
     readonly property int controlPaddingY: 6
-    // Type scale (pixel sizes the stylesheets use) and weights.
+    readonly property int controlHeight: 28       // buttons, fields, icon buttons
+    readonly property int rowHeight: 30           // sidebar items
+    readonly property int listRowHeight: 52       // two-line list rows
+    readonly property int chipHeight: 20
+    readonly property int badgeHeight: 18
+    readonly property int iconSize: 16
+    readonly property int iconSizeSm: 12
+    readonly property int statusDotSize: 8
+    readonly property int splitterHandleWidth: 8  // hit area; the drawn line is 1px
+    readonly property int splitterStep: 16        // arrow-key resize step (Shift: x4)
+
+    // ---- Layout defaults ------------------------------------------------
+    readonly property int sidebarWidth: 232
+    readonly property int sidebarMinWidth: 160
+    readonly property int sidebarMaxWidth: 400
+    readonly property int inspectorWidth: 320
+    readonly property int inspectorMinWidth: 240
+    readonly property int inspectorMaxWidth: 560
+    readonly property int contentMinWidth: 280
+    readonly property int dialogWidth: 440
+    readonly property int sheetWidth: 400
+    readonly property int toastWidth: 360
+    readonly property int toastTimeout: 5000      // ms a toast stays (0 = until dismissed)
+
+    // ---- Type scale (pixel sizes the stylesheets use) and weights -------
     readonly property int fontSizeXs: 11
     readonly property int fontSizeSm: 12
     readonly property int fontSizeMd: 13
@@ -339,12 +409,140 @@ _NATIVE = """
     readonly property int fontWeightStrong: Font.DemiBold  // 600
     readonly property int fontWeightBold: Font.Bold        // 700
 
+    // ---- Monospace face ---------------------------------------------------
+    // --sui-mono is a CSS stack; Qt takes one family. `monoFamily` is the first
+    // installed candidate for the platform (assign it to override):
+{mono_doc}
+    readonly property string platformName: Qt.platform.os === "osx" || Qt.platform.os === "macos" ? "macos"
+        : Qt.platform.os === "windows" ? "windows" : "linux"
+    readonly property var monoCandidates: ({mono_map})[platformName]
+    property string monoFamily: _firstInstalled(monoCandidates, {mono_fallback})
+
+    // ---- Tones ------------------------------------------------------------
+    // A tone is "neutral" | "info" | "ok" | "warn" | "danger", a bucket
+    // "bucket1".."bucket{bucket_count}" (or its number), or a registry tone name
+    // ("green", "blue", "yellow", "orange", "red", "purple").
+    // toneBase: dot / border / tint colour; toneText: text on toneFill.
+    readonly property real toneTint: {tone_tint}     // fill under tone text (contrast-checked)
+    readonly property real toneBorderAmount: {tone_border}
+    readonly property var statusTones: ["neutral", "info", "ok", "warn", "danger"]
+
+    // ---- Bucket palette ({bucket_count} categorical tones) --------------------------
+"""
+
+_NATIVE_TAIL = """
+    function bucketNumber(tone) {
+        if (typeof tone === "number")
+            return tone >= 1 && tone <= bucketCount ? Math.floor(tone) : 0
+        const m = /^bucket([0-9]+)$/.exec(String(tone))
+        const n = m ? Number(m[1]) : 0
+        return n >= 1 && n <= bucketCount ? n : 0
+    }
+    function toneBase(tone) {
+        const b = bucketNumber(tone)
+        if (b > 0)
+            return bucketColors[b - 1]
+        switch (tone) {
+        case "info": case "blue": return toneBlue
+        case "ok": case "green": return toneGreen
+        case "warn": case "yellow": return toneYellow
+        case "orange": return toneOrange
+        case "danger": case "red": return toneRed
+        case "purple": return tonePurple
+        default: return muted
+        }
+    }
+    function toneText(tone) {
+        const b = bucketNumber(tone)
+        if (b > 0)
+            return bucketTextColors[b - 1]
+        switch (tone) {
+        case "info": case "blue": return toneBlueText
+        case "ok": case "green": return toneGreenText
+        case "warn": case "yellow": return toneYellowText
+        case "orange": return toneOrangeText
+        case "danger": case "red": return toneRedText
+        case "purple": return tonePurpleText
+        default: return text
+        }
+    }
+    function isNeutral(tone) {
+        return bucketNumber(tone) === 0 && ["info", "ok", "warn", "danger", "blue", "green",
+                                            "yellow", "orange", "red", "purple"].indexOf(tone) < 0
+    }
+    // The fill under tone text: the tone at toneTint, or --sui-tint for neutral.
+    function toneFill(tone) {
+        return isNeutral(tone) ? tint : alpha(toneBase(tone), toneTint)
+    }
+    function toneBorder(tone) {
+        return isNeutral(tone) ? line : alpha(toneBase(tone), toneBorderAmount)
+    }
+    // Health dots: "ok" | "held" | "failing" | "none".
+    function statusColor(status) {
+        switch (status) {
+        case "ok": return ok
+        case "held": return toneYellow
+        case "failing": return toneRed
+        default: return "transparent"
+        }
+    }
+
     // `color` at `amount` of its opacity: CSS color-mix(in srgb, c N%, transparent).
     function alpha(c, amount) {
         return Qt.rgba(c.r, c.g, c.b, c.a * amount)
     }
+
+    function _firstInstalled(candidates, fallback) {
+        const installed = Qt.fontFamilies().map(f => f.toLowerCase())
+        for (const family of candidates) {
+            if (family === "monospace" || installed.indexOf(family.toLowerCase()) >= 0)
+                return family
+        }
+        return fallback
+    }
 }
 """
+
+
+def render_native() -> str:
+    mono_doc = "\n".join(
+        f"    //   {plat}: {', '.join(fams)}" for plat, fams in MONO_FAMILIES.items()
+    ) + f"\n    //   fallback: {MONO_FALLBACK}"
+    mono_map = "{ " + ", ".join(
+        f"{plat}: [{', '.join(json.dumps(f) for f in fams)}]" for plat, fams in MONO_FAMILIES.items()
+    ) + " }"
+    out = [
+        _NATIVE_HEAD.replace("{mono_doc}", mono_doc)
+        .replace("{mono_map}", mono_map)
+        .replace("{mono_fallback}", json.dumps(MONO_FALLBACK))
+        .replace("{tone_tint}", _fmt_num(TONE_TINT))
+        .replace("{tone_border}", _fmt_num(TONE_BORDER))
+        .replace("{bucket_count}", str(len(NATIVE_BUCKETS)))
+    ]
+    for i, (name, (lbase, ltext), (dbase, dtext)) in enumerate(NATIVE_BUCKETS, start=1):
+        for value in (lbase, ltext, dbase, dtext):
+            if parse_color(value) is None:
+                raise GenError(f"bucket {name}: {value!r} is not a colour")
+        out.append(f"    // bucket{i}: {name}\n")
+        out.append(f'    readonly property color bucket{i}: dark ? "{dbase}" : "{lbase}"\n')
+        out.append(f'    readonly property color bucket{i}Text: dark ? "{dtext}" : "{ltext}"\n')
+    n = len(NATIVE_BUCKETS)
+    out.append(f"    readonly property int bucketCount: {n}\n")
+    out.append(
+        "    readonly property var bucketNames: ["
+        + ", ".join(json.dumps(b[0]) for b in NATIVE_BUCKETS)
+        + "]\n"
+    )
+    out.append(
+        "    readonly property var bucketColors: [" + ", ".join(f"bucket{i}" for i in range(1, n + 1)) + "]\n"
+    )
+    out.append(
+        "    readonly property var bucketTextColors: ["
+        + ", ".join(f"bucket{i}Text" for i in range(1, n + 1))
+        + "]\n"
+    )
+    out.append(_NATIVE_TAIL)
+    return "".join(out)
 
 
 def render_qml(snap: dict) -> str:
@@ -393,7 +591,7 @@ def render_qml(snap: dict) -> str:
     out.append("    readonly property var registry: ({\n")
     out.append(",\n".join(f'        "{t["name"]}": "{qml_name(t["name"])}"' for t in tokens))
     out.append("\n    })\n")
-    out.append(_NATIVE)
+    out.append(render_native())
     return "".join(out)
 
 
