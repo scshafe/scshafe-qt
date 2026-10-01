@@ -1,0 +1,54 @@
+[project]
+name = "scshafe-qt"
+version = "0.0.0"
+description = "The SCSHAFE native component library: the Scshafe.Ui QML module (Qt Quick) for PySide6 apps, themed from the @scshafe/ui token registry."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [{ name = "scshafe-qt contributors" }]
+# PySide6 6.8.x wheels declare requires-python ">=3.9,<3.14"; the lower bound
+# is the oldest Python the library is tested on (.python-version pins 3.13).
+requires-python = ">=3.13,<3.14"
+classifiers = [
+    "Private :: Do Not Upload",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: Pytest",
+    "License :: OSI Approved :: MIT License",
+]
+# Range policy: the library accepts the Qt LTS line it is built and tested
+# on (6.8.x, ">=<tested patch>,<next minor>"); an app pins one exact version
+# in its own uv.lock. Moving to the next LTS (6.12) is a minor bump of this
+# library with a changelog entry.
+dependencies = ["PySide6-Essentials>=6.8.3,<6.9"]
+
+[project.urls]
+Repository = "https://github.com/scshafe/scshafe-qt"
+Changelog = "https://github.com/scshafe/scshafe-qt/blob/main/CHANGELOG.md"
+
+[dependency-groups]
+dev = ["pytest==9.1.1", "pytest-qt==4.5.0"]
+
+[build-system]
+requires = ["hatchling==1.32.4"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# Everything under the package ships, including the QML module
+# (qml/Scshafe/Ui/qmldir and *.qml), with no MANIFEST.in.
+packages = ["src/scshafe_qt"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/tests",
+    "/tools",
+    "/tokens",
+    "/README.md",
+    "/CHANGELOG.md",
+    "/LICENSE",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers"
+qt_api = "pyside6"
