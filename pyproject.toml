@@ -46,6 +46,7 @@ include = [
     "/tests",
     "/tools",
     "/tokens",
+    "/examples",
     "/README.md",
     "/CHANGELOG.md",
     "/LICENSE",
