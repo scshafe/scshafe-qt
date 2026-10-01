@@ -1,1 +1,2 @@
 module Scshafe.Ui
+singleton SuiTheme 1.0 SuiTheme.qml
