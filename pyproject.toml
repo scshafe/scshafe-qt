@@ -1,6 +1,6 @@
 [project]
 name = "scshafe-qt"
-version = "0.0.0"
+version = "0.1.0"
 description = "The SCSHAFE native component library: the Scshafe.Ui QML module (Qt Quick) for PySide6 apps, themed from the @scshafe/ui token registry."
 readme = "README.md"
 license = "MIT"

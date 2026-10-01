@@ -7,6 +7,19 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.1.0 — 2026-10-01
+
+First release.
+
+- Releases: `.github/workflows/publish.yml` (the library standard's Python
+  variant): an annotated `v<x.y.z>` tag on `main` matching the version; tests,
+  build and install-and-load smoke on Linux and macOS; a reproducible rebuild
+  must match; a draft GitHub Release with the wheel, sdist and `SHA256SUMS`,
+  published only after the assets downloaded back pass the payload check and
+  smoke. `tools/check_dist.py --dist DIR`. CI runs macOS by hand and weekly
+  (tags go through `publish.yml`).
+- Tests ignore one headless-only Qt warning: on macOS the offscreen platform's
+  theme font "Sans Serif" doesn't exist; any other warning still fails.
 - Qt 6.11: depend on `PySide6-Essentials>=6.11.2,<6.12` (was `>=6.8.3,<6.9`);
   open-source Qt patches track the current minor, so the library follows it
   (6.12 when PySide6 6.12 ships). Python 3.14 (`.python-version`,
