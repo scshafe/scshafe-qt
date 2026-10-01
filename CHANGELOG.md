@@ -7,6 +7,10 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+- Qt 6.11: depend on `PySide6-Essentials>=6.11.2,<6.12` (was `>=6.8.3,<6.9`);
+  open-source Qt patches track the current minor, so the library follows it
+  (6.12 when PySide6 6.12 ships). Python 3.14 (`.python-version`,
+  `requires-python >=3.14,<3.15`); the 6.11 wheels are abi3 (CPython 3.10+).
 - Q0 scaffold: package `scshafe_qt` (hatchling, uv, Python 3.13) depending on
   `PySide6-Essentials>=6.8.3,<6.9` (Qt 6.8 LTS), with the QML module
   `Scshafe.Ui` and `scshafe_qt.register(engine)` / `qml_import_path()`.

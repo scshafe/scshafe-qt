@@ -23,4 +23,4 @@ version = "0"
 released = false
 dirty = false
 mode = "manual"
-params = { kind = "library", lang = "python", name = "scshafe-qt", description = "The SCSHAFE native component library: the Scshafe.Ui QML module (Qt Quick) for PySide6 apps, themed from the @scshafe/ui token registry.", distribution = "scshafe-qt", import = "scshafe_qt", qml_module = "Scshafe.Ui", deps = ["PySide6-Essentials>=6.8.3,<6.9"], qt = "6.8 LTS", python = "3.13", date = "2026-10-01" }
+params = { kind = "library", lang = "python", name = "scshafe-qt", description = "The SCSHAFE native component library: the Scshafe.Ui QML module (Qt Quick) for PySide6 apps, themed from the @scshafe/ui token registry.", distribution = "scshafe-qt", import = "scshafe_qt", qml_module = "Scshafe.Ui", deps = ["PySide6-Essentials>=6.11.2,<6.12"], qt = "6.11", python = "3.14", date = "2026-10-01" }

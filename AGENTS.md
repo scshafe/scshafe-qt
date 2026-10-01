@@ -22,8 +22,8 @@ nothing. Read `README.md` before meaningful changes.
   is the pattern (QtQuick.Templates, no platform style).
 - A new component gets: a `qmldir` line, pytest-qt tests (render, focus,
   accessible name) and a QML `TestCase` in `tests/qml/tst_*.qml`.
-- Runtime dependency: `PySide6-Essentials` only, in the tested LTS range
-  (`>=<tested patch>,<next minor>`); apps pin exactly. Adding another runtime
+- Runtime dependency: `PySide6-Essentials` only, in the tested minor range
+  (`>=<tested patch>,<next minor>`, today `>=6.11.2,<6.12`); apps pin exactly. Adding another runtime
   dependency is a reviewed change. Do not depend on the full `PySide6` meta-package.
 - Toolchain: uv `==0.12.21` (`[tool.uv] required-version`), Python from
   `.python-version`, `uv.lock` committed, installs with `uv sync --frozen`. No

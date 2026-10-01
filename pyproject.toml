@@ -6,20 +6,23 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "scshafe-qt contributors" }]
-# PySide6 6.8.x wheels declare requires-python ">=3.9,<3.14"; the lower bound
-# is the oldest Python the library is tested on (.python-version pins 3.13).
-requires-python = ">=3.13,<3.14"
+# PySide6 6.11.x wheels (abi3, cp310) declare requires-python ">=3.10,<3.15";
+# the lower bound is the oldest Python the library is tested on
+# (.python-version pins 3.14).
+requires-python = ">=3.14,<3.15"
 classifiers = [
     "Private :: Do Not Upload",
-    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Framework :: Pytest",
     "License :: OSI Approved :: MIT License",
 ]
-# Range policy: the library accepts the Qt LTS line it is built and tested
-# on (6.8.x, ">=<tested patch>,<next minor>"); an app pins one exact version
-# in its own uv.lock. Moving to the next LTS (6.12) is a minor bump of this
-# library with a changelog entry.
-dependencies = ["PySide6-Essentials>=6.8.3,<6.9"]
+# Range policy: the library accepts the Qt minor it is built and tested on
+# (6.11.x, ">=<tested patch>,<next minor>"); an app pins one exact version in
+# its own uv.lock. Open-source Qt patch releases track the current minor
+# only (6.8 LTS patches for open source ended at 6.8.3), so the library
+# follows the current minor: moving to the next one (6.12) is a minor bump
+# of this library with a changelog entry.
+dependencies = ["PySide6-Essentials>=6.11.2,<6.12"]
 
 [project.urls]
 Repository = "https://github.com/scshafe/scshafe-qt"

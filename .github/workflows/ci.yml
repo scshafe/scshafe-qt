@@ -34,7 +34,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      # The system libraries the PySide6 6.8 wheels link (readelf NEEDED of
+      # The system libraries the PySide6 6.11 wheels link (readelf NEEDED of
       # libQt6Gui, libQt6Quick, libQt6DBus and the offscreen platform plugin;
       # ICU is bundled) and one font family for text rendering.
       - name: Install Qt runtime libraries
@@ -44,7 +44,8 @@ jobs:
             libegl1 libgl1 libxkbcommon0 libfontconfig1 libfreetype6 \
             libx11-6 libglib2.0-0t64 libdbus-1-3 fonts-dejavu-core
       # astral-sh/setup-uv v10.2.0; the uv version comes from pyproject.toml
-      # [tool.uv] required-version, Python from .python-version.
+      # [tool.uv] required-version, Python from .python-version (uv downloads a
+      # managed CPython 3.14).
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
       - run: uv sync --frozen
       - name: Generated tokens are current

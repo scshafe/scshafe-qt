@@ -307,8 +307,8 @@ QtObject {{
     readonly property bool dark: mode === "dark" || (mode !== "light" && systemDark)
     readonly property string themeName: dark ? "dark" : "light"
 
-    // Reduced motion. Qt 6.8 exposes no OS reduced-motion preference (QStyleHints
-    // has none, and Qt 6.10's QAccessibilityHints only carries contrastPreference),
+    // Reduced motion. Qt (through 6.11) exposes no OS reduced-motion preference
+    // (QStyleHints has none; QAccessibilityHints, 6.10+, only has contrastPreference),
     // so the application sets this explicitly; when true every duration is {reduced_ms}.
     property bool reducedMotion: false
 

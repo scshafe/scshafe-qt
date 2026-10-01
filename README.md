@@ -6,9 +6,12 @@ Python + PySide6 desktop apps, themed from the same token registry as the web li
 type and motion.
 
 - Distribution `scshafe-qt`, import `scshafe_qt`, QML module `Scshafe.Ui`.
-- Qt **6.8 LTS** through `PySide6-Essentials` 6.8.x (6.8.3, the last 6.8 wheel on
-  PyPI); the move to 6.12 LTS comes when PySide6 6.12 ships.
-- Python 3.13 (PySide6 6.8 wheels declare `requires-python <3.14`).
+- Qt **6.11** through `PySide6-Essentials` 6.11.x (6.11.2). Open-source Qt patch
+  releases track the current minor (6.8 LTS patches for open source ended at
+  6.8.3), so the library follows the current minor; 6.12 comes when PySide6 6.12
+  ships.
+- Python 3.14 (the 6.11 wheels are abi3 for CPython 3.10+ and declare
+  `requires-python <3.15`).
 - Status: **Q0 scaffold**, unreleased. Components so far: `SuiTheme` (tokens) and
   `SuiButton`. The v0.1 component set is Q1; the first release (0.1.0) is Q2.
 
@@ -28,8 +31,8 @@ dependencies = [
 
 The Release body will list each file's sha256 so the pin can be checked by hand. How
 private-repository downloads authenticate for people, agents and CI (App installation
-token or a fine-grained read token) is decided at Q2. The library accepts the Qt LTS
-line it is tested on (`PySide6-Essentials>=6.8.3,<6.9`); the app's own `uv.lock` pins
+token or a fine-grained read token) is decided at Q2. The library accepts the Qt minor
+it is tested on (`PySide6-Essentials>=6.11.2,<6.12`); the app's own `uv.lock` pins
 one exact PySide6.
 
 ## Usage
@@ -69,8 +72,8 @@ is `SuiTheme.textStrong`; `SuiTheme.registry` maps CSS names to property names).
 - `SuiTheme.mode`: `"system"` (default) follows `Qt.styleHints.colorScheme`; `"light"`
   and `"dark"` pin a theme. `SuiTheme.dark` / `SuiTheme.themeName` report the result.
 - `SuiTheme.reducedMotion`: when `true`, `SuiTheme.duration` (every transition) is 0.
-  Qt 6.8 exposes **no** OS reduced-motion preference (QStyleHints has none; Qt 6.10's
-  `QAccessibilityHints` only adds `contrastPreference`), so the application sets it,
+  Qt (through 6.11) exposes **no** OS reduced-motion preference (QStyleHints has none;
+  `QAccessibilityHints`, 6.10+, only carries `contrastPreference`), so the application sets it,
   e.g. from GNOME's `org.gnome.desktop.interface enable-animations` or macOS's
   "Reduce motion" setting.
 - Units: lengths are logical pixels (CSS px), durations milliseconds; shadows are
@@ -115,7 +118,8 @@ Change a token in scshafe-ui, release it, then `--refresh` here in one commit.
 ## Development
 
 Toolchain: [uv](https://docs.astral.sh/uv/) 0.12.21 (`[tool.uv] required-version`),
-Python 3.13 (`.python-version`, installed by uv), `uv.lock` committed.
+Python 3.14 (`.python-version`; uv uses a matching interpreter or downloads a managed
+CPython 3.14, as CI does), `uv.lock` committed.
 
 ```sh
 uv sync --frozen                                   # .venv with PySide6 + pytest-qt
