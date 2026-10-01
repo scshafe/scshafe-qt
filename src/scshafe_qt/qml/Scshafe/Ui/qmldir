@@ -1,5 +1,6 @@
 module Scshafe.Ui
 singleton SuiTheme 1.0 SuiTheme.qml
+SuiAppShell 1.0 SuiAppShell.qml
 SuiBadge 1.0 SuiBadge.qml
 SuiBanner 1.0 SuiBanner.qml
 SuiButton 1.0 SuiButton.qml
@@ -8,6 +9,12 @@ SuiEmptyState 1.0 SuiEmptyState.qml
 SuiIcon 1.0 SuiIcon.qml
 SuiIconButton 1.0 SuiIconButton.qml
 SuiKbd 1.0 SuiKbd.qml
+SuiList 1.0 SuiList.qml
+SuiListRow 1.0 SuiListRow.qml
 SuiSearchField 1.0 SuiSearchField.qml
+SuiSidebarItem 1.0 SuiSidebarItem.qml
+SuiSidebarList 1.0 SuiSidebarList.qml
 SuiTextField 1.0 SuiTextField.qml
+SuiTrail 1.0 SuiTrail.qml
 internal SuiFocusRing SuiFocusRing.qml
+internal SuiSplitHandle SuiSplitHandle.qml
