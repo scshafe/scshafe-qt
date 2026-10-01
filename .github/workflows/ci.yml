@@ -1,12 +1,11 @@
 name: CI
 
 # Linux on every push and pull request. macOS (GitHub-hosted, Apple Silicon)
-# only on release tags, by hand and weekly: hosted macOS minutes bill at 10x on
-# a private repository. Publishing is publish.yml's job (Q2), not this one.
+# only by hand and weekly: hosted macOS minutes bill at 10x on a private
+# repository. Release tags run publish.yml, which verifies on both.
 on:
   push:
     branches: ["**"]
-    tags: ["v*"]
   pull_request:
   workflow_dispatch:
   schedule:
@@ -58,10 +57,7 @@ jobs:
           uv run --frozen python tools/check_dist.py --smoke
 
   macos:
-    if: >-
-      github.event_name == 'schedule' ||
-      github.event_name == 'workflow_dispatch' ||
-      startsWith(github.ref, 'refs/tags/v')
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
     timeout-minutes: 20
     steps:

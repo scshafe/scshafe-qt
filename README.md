@@ -12,28 +12,26 @@ type and motion.
   ships.
 - Python 3.14 (the 6.11 wheels are abi3 for CPython 3.10+ and declare
   `requires-python <3.15`).
-- Status: **Q1 components**, unreleased: `SuiTheme` (tokens) and the v0.1 component
-  set below. The first release (0.1.0) is Q2.
+- Status: **0.1.0**: `SuiTheme` (tokens) and the v0.1 component set below.
 
 ## Install (consumers)
 
-Releases will be wheels attached to GitHub Releases of `scshafe/scshafe-qt` (Q2), never
-a package index. A consumer pins the exact Release URL, and `uv lock` records the
-wheel's sha256:
+Releases are wheels attached to GitHub Releases of `scshafe/scshafe-qt`, never a
+package index; each Release lists the wheel's and sdist's sha256 and carries a
+`SHA256SUMS` file. The repository is private, and GitHub serves a private Release's
+assets only through the API (`releases/download/…` URLs answer 404 even with a token),
+so a plain URL pin in `pyproject.toml` cannot be fetched by `uv`. Until the consumer
+download path is settled (at the first consumer, `mailroom-desktop`), fetch and check
+the wheel with `gh`, then add the file:
 
-```toml
-# the app's pyproject.toml (shape to be finalised at Q2)
-[project]
-dependencies = [
-    "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.1.0/scshafe_qt-0.1.0-py3-none-any.whl",
-]
+```sh
+gh release download v0.1.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS -D vendor
+(cd vendor && sha256sum -c --ignore-missing SHA256SUMS)
+uv add ./vendor/scshafe_qt-0.1.0-py3-none-any.whl   # uv.lock records its sha256
 ```
 
-The Release body will list each file's sha256 so the pin can be checked by hand. How
-private-repository downloads authenticate for people, agents and CI (App installation
-token or a fine-grained read token) is decided at Q2. The library accepts the Qt minor
-it is tested on (`PySide6-Essentials>=6.11.2,<6.12`); the app's own `uv.lock` pins
-one exact PySide6.
+The library accepts the Qt minor it is tested on (`PySide6-Essentials>=6.11.2,<6.12`);
+the app's own `uv.lock` pins one exact PySide6.
 
 ## Usage
 
@@ -265,20 +263,25 @@ environment (`uv pip install -e <path>` in the app's venv) and never commit that
 
 `.github/workflows/ci.yml`, GitHub-hosted runners only, `contents: read`, actions pinned
 by SHA: Linux (`ubuntu-latest`) on every push and pull request; macOS (`macos-latest`,
-Apple Silicon) on `v*` tags, `workflow_dispatch` and weekly, to keep macOS minutes low.
+Apple Silicon) on `workflow_dispatch` and weekly, to keep macOS minutes low (release
+tags run `publish.yml`, which verifies on both).
 Both run `uv sync --frozen`, the token check, the tests, `uv build` and the
 distribution check (wheel carries the QML module, payload scan, install-and-load smoke).
 
 ## Releasing
 
-Not yet: the first release, 0.1.0, is Q2. The planned shape, after the library
-standard: `pyproject.toml` `version` is the authority; a release commit bumps it and
-adds `## <x.y.z> — <date>` to `CHANGELOG.md`; after CI is green on `main` the owning
-agent pushes the annotated tag `v<x.y.z>` on that commit; `publish.yml` (Q2) is the only
-publisher: it refuses tags not on `main` or not matching the version, builds the wheel
-and sdist, attaches them to a GitHub Release with their sha256s, then installs the
-wheel back from the Release URL into a clean environment and loads the module
-offscreen. Versions are never reused, moved or deleted.
+The library standard's Python variant. `pyproject.toml` `version` is the authority: a
+release commit bumps it and adds `## <x.y.z> — <date>` to `CHANGELOG.md`; after CI is
+green on `main` the owning agent runs the dry run
+(`gh workflow run publish.yml -f dry_run=true`, every check on Linux and macOS) and then
+pushes the annotated tag `v<x.y.z>` on that commit. `.github/workflows/publish.yml` is
+the only publisher. It refuses tags not on `main`, not annotated or not matching the
+version, and lock files with non-registry sources; tests, builds and smoke-installs on
+Linux and macOS; rebuilds the tag and requires the same bytes (hatchling builds are
+reproducible); creates a **draft** Release with the wheel, sdist and `SHA256SUMS`;
+downloads those assets back, checks their hashes and runs the payload check and the
+install-and-load smoke on the downloaded wheel; and only then publishes the Release.
+Versions are never reused, moved or deleted.
 
 ## License
 

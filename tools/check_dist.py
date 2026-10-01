@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Check the built distributions in dist/: the wheel carries the QML module, nothing leaks.
 
-    uv build && uv run python tools/check_dist.py [--smoke]
+    uv build && uv run python tools/check_dist.py [--smoke] [--dist DIR]
 
 - the wheel contains the package, the module's qmldir, every file qmldir names,
   and every QML file of the source module (src/scshafe_qt/qml/Scshafe/Ui), which
@@ -104,10 +104,10 @@ Window {
 SMOKE_COMPONENTS = 21  # public components in qmldir, each built once above
 
 
-def one(pattern: str) -> Path:
-    found = sorted(DIST.glob(pattern))
+def one(dist: Path, pattern: str) -> Path:
+    found = sorted(dist.glob(pattern))
     if len(found) != 1:
-        sys.exit(f"error: expected one {pattern} in dist/, found {[p.name for p in found]}")
+        sys.exit(f"error: expected one {pattern} in {dist}, found {[p.name for p in found]}")
     return found[0]
 
 
@@ -165,9 +165,13 @@ def check_sdist(sdist: Path, problems: list[str]) -> None:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--smoke", action="store_true", help="install the wheel in a throwaway env and load the module")
+    ap.add_argument("--dist", type=Path, default=DIST,
+                    help="directory holding the wheel and sdist (default dist/; publish.yml's install-back "
+                         "passes the files downloaded from the Release)")
     args = ap.parse_args()
+    dist = args.dist.resolve()
     problems: list[str] = []
-    wheel, sdist = one("scshafe_qt-*.whl"), one("scshafe_qt-*.tar.gz")
+    wheel, sdist = one(dist, "scshafe_qt-*.whl"), one(dist, "scshafe_qt-*.tar.gz")
     names = check_wheel(wheel, problems)
     check_sdist(sdist, problems)
     if problems:
@@ -183,7 +187,7 @@ def main() -> int:
             ["uv", "run", "--isolated", "--no-project", "--with", str(wheel), "python", "-c",
              f"SCENE = {SMOKE_SCENE!r}\nEXPECTED = {SMOKE_COMPONENTS}\n" + SMOKE],
             check=True,
-            cwd=DIST,
+            cwd=dist,
         )
     return 0
 

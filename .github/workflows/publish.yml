@@ -1,0 +1,263 @@
+name: Publish
+
+# The library standard's Python variant. A release is an annotated tag
+# v<x.y.z> on a commit on main whose pyproject.toml version is <x.y.z>. This
+# workflow is the only publisher: the wheel and sdist are attached to a GitHub
+# Release (never a package index). workflow_dispatch exists only for the dry
+# run: it runs every check, including macOS, and stops before the Release.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Stop before creating the Release (releases come only from tags; false is refused)"
+        type: boolean
+        required: true
+        default: true
+
+permissions: {}
+
+concurrency:
+  group: publish-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  QT_QPA_PLATFORM: offscreen
+  QT_QUICK_BACKEND: software
+
+jobs:
+  build:
+    name: Verify and build (Linux)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.identity.outputs.tag }}
+      version: ${{ steps.identity.outputs.version }}
+      commit: ${{ steps.identity.outputs.commit }}
+      wheel: ${{ steps.digests.outputs.wheel }}
+      wheel_sha256: ${{ steps.digests.outputs.wheel_sha256 }}
+      sdist: ${{ steps.digests.outputs.sdist }}
+      sdist_sha256: ${{ steps.digests.outputs.sdist_sha256 }}
+    steps:
+      - name: Refuse a non-dry-run dispatch
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run != true
+        run: |
+          echo "::error::Releases come only from a v<x.y.z> tag on main; dispatch is dry-run only."
+          exit 1
+
+      # actions/checkout v7.0.1. fetch-depth 0 fetches every branch and tag, so
+      # origin/main is present for the ancestry check; credentials are not persisted.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Check release identity (tag on main, version == tag, changelog entry)
+        id: identity
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$*"; exit 1; }
+          commit="$(git rev-parse HEAD)"
+          read -r name version < <(python3 -c 'import tomllib; p = tomllib.load(open("pyproject.toml", "rb"))["project"]; print(p["name"], p["version"])')
+          [[ "$name" == "scshafe-qt" ]] || fail "pyproject.toml name $name is not scshafe-qt"
+          [[ "$version" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]] \
+            || fail "pyproject.toml version $version is not a plain x.y.z release version"
+          grep -Eq "^## ${version//./\\.} " CHANGELOG.md \
+            || fail "CHANGELOG.md has no '## $version — <date>' section"
+          git rev-parse --verify --quiet refs/remotes/origin/main >/dev/null \
+            || fail "origin/main was not fetched"
+          if [[ "$DRY_RUN" == "true" ]]; then
+            tag="v$version"
+            if git merge-base --is-ancestor "$commit" refs/remotes/origin/main; then
+              echo "Dry run: $commit is on origin/main."
+            else
+              echo "::warning::Dry run: $commit is not on origin/main; a tag here would be refused."
+            fi
+          else
+            [[ "$GITHUB_REF" == refs/tags/v* ]] || fail "not a v* tag push: $GITHUB_REF"
+            tag="$GITHUB_REF_NAME"
+            [[ "$(git cat-file -t "refs/tags/$tag")" == "tag" ]] \
+              || fail "$tag is not an annotated tag"
+            tag_commit="$(git rev-parse "refs/tags/$tag^{commit}")"
+            [[ "$tag_commit" == "$commit" ]] \
+              || fail "checked-out $commit is not the commit $tag_commit tagged $tag"
+            git merge-base --is-ancestor "$commit" refs/remotes/origin/main \
+              || fail "$tag ($commit) is not on origin/main"
+            [[ "$tag" == "v$version" ]] \
+              || fail "tag $tag does not equal pyproject.toml version v$version"
+          fi
+          {
+            echo "tag=$tag"
+            echo "version=$version"
+            echo "commit=$commit"
+          } >> "$GITHUB_OUTPUT"
+          echo "Release identity: $tag, $commit"
+
+      # Every locked package other than this project must come from the registry
+      # (PyPI): no path, directory, editable, git or URL sources.
+      - name: Refuse local or non-registry dependencies
+        run: |
+          python3 - <<'EOF'
+          import sys, tomllib
+          lock = tomllib.load(open("uv.lock", "rb"))
+          bad = [f'{p["name"]} {p.get("source")}' for p in lock["package"]
+                 if p["name"] != "scshafe-qt" and set(p.get("source", {})) != {"registry"}]
+          if bad:
+              print("::error::uv.lock resolves packages outside the registry: " + "; ".join(bad))
+              sys.exit(1)
+          print(f'ok: {len(lock["package"]) - 1} locked packages, all from the registry')
+          EOF
+
+      # Same system libraries as ci.yml (the PySide6 6.11 wheels' NEEDED set).
+      - name: Install Qt runtime libraries
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            libegl1 libgl1 libxkbcommon0 libfontconfig1 libfreetype6 \
+            libx11-6 libglib2.0-0t64 libdbus-1-3 fonts-dejavu-core
+      # astral-sh/setup-uv v10.2.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+      - run: uv sync --frozen
+      - name: Generated tokens are current
+        run: uv run --frozen python tools/gen_tokens.py --check
+      - name: Tests (offscreen; include the QtQuickTest suites)
+        run: uv run --frozen pytest -v
+      - name: Build wheel and sdist, check payload, install and load the wheel
+        run: |
+          uv build
+          uv run --frozen python tools/check_dist.py --smoke
+
+      - name: Record digests
+        id: digests
+        env:
+          VERSION: ${{ steps.identity.outputs.version }}
+        run: |
+          set -euo pipefail
+          wheel="scshafe_qt-$VERSION-py3-none-any.whl"
+          sdist="scshafe_qt-$VERSION.tar.gz"
+          [[ -f "dist/$wheel" && -f "dist/$sdist" ]] \
+            || { echo "::error::expected dist/$wheel and dist/$sdist, found: $(ls dist)"; exit 1; }
+          {
+            echo "wheel=$wheel"
+            echo "wheel_sha256=$(sha256sum "dist/$wheel" | cut -d' ' -f1)"
+            echo "sdist=$sdist"
+            echo "sdist_sha256=$(sha256sum "dist/$sdist" | cut -d' ' -f1)"
+          } >> "$GITHUB_OUTPUT"
+          (cd dist && sha256sum "$wheel" "$sdist")
+
+  macos:
+    name: Verify and build (macOS)
+    runs-on: macos-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      # astral-sh/setup-uv v10.2.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+      - run: uv sync --frozen
+      - run: uv run --frozen python tools/gen_tokens.py --check
+      - run: uv run --frozen pytest -v
+      - name: Build, check payload, install and load the wheel
+        run: |
+          uv build
+          uv run --frozen python tools/check_dist.py --smoke
+          (cd dist && shasum -a 256 *)
+
+  release:
+    name: Rebuild, release, install back
+    needs: [build, macos]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    env:
+      TAG: ${{ needs.build.outputs.tag }}
+      VERSION: ${{ needs.build.outputs.version }}
+      COMMIT: ${{ needs.build.outputs.commit }}
+      WHEEL: ${{ needs.build.outputs.wheel }}
+      WHEEL_SHA256: ${{ needs.build.outputs.wheel_sha256 }}
+      SDIST: ${{ needs.build.outputs.sdist }}
+      SDIST_SHA256: ${{ needs.build.outputs.sdist_sha256 }}
+    steps:
+      # actions/checkout v7.0.1
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ needs.build.outputs.commit }}
+          persist-credentials: false
+      - name: Install Qt runtime libraries
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            libegl1 libgl1 libxkbcommon0 libfontconfig1 libfreetype6 \
+            libx11-6 libglib2.0-0t64 libdbus-1-3 fonts-dejavu-core
+      # astral-sh/setup-uv v10.2.0
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
+
+      # hatchling builds are reproducible (fixed timestamps, normalised modes):
+      # a fresh build of the tag must equal the verified build byte for byte.
+      - name: Rebuild the tag and compare with the verified build
+        run: |
+          set -euo pipefail
+          uv build
+          echo "$WHEEL_SHA256  dist/$WHEEL" | sha256sum -c -
+          echo "$SDIST_SHA256  dist/$SDIST" | sha256sum -c -
+          (cd dist && sha256sum "$WHEEL" "$SDIST") > "$RUNNER_TEMP/SHA256SUMS"
+          cp "$RUNNER_TEMP/SHA256SUMS" dist/SHA256SUMS
+
+      # A draft first: the Release becomes visible only after the install-back
+      # from its own assets passes.
+      - name: Create the draft Release with digests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes="$RUNNER_TEMP/release-notes.md"
+          {
+            echo "scshafe-qt $VERSION from $COMMIT."
+            echo
+            echo "| Artifact | sha256 |"
+            echo "| --- | --- |"
+            echo "| \`$WHEEL\` | \`$WHEEL_SHA256\` |"
+            echo "| \`$SDIST\` | \`$SDIST_SHA256\` |"
+            echo
+            echo "Built and tested on Linux and macOS; a fresh build of the tag equals the"
+            echo "verified build byte for byte; the wheel downloaded from this Release passed"
+            echo "the payload check and the install-and-load smoke before it was published."
+            echo
+            awk -v v="$VERSION" '$0 ~ "^## " v " " {on=1; next} on && /^## / {exit} on {print}' CHANGELOG.md
+          } > "$notes"
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --draft \
+            --verify-tag \
+            --title "$TAG" \
+            --notes-file "$notes" \
+            "dist/$WHEEL" "dist/$SDIST" "dist/SHA256SUMS"
+
+      - name: Install back from the Release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          back="$RUNNER_TEMP/back"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --dir "$back" \
+            --pattern "$WHEEL" --pattern "$SDIST" --pattern SHA256SUMS
+          (cd "$back" && sha256sum -c SHA256SUMS)
+          cmp "$back/SHA256SUMS" "$RUNNER_TEMP/SHA256SUMS"
+          uv sync --frozen
+          uv run --frozen python tools/check_dist.py --dist "$back" --smoke
+
+      - name: Publish the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
