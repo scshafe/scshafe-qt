@@ -15,13 +15,22 @@ nothing. Read `README.md` before meaningful changes.
   `tokens/sui-tokens.json`); native-only values (focus ring, type scale,
   helpers) live in the generator's template. `gen_tokens.py --check` and
   `tests/test_tokens.py` must pass; change the snapshot and the QML in one commit.
-- Components carry no colour, size or duration literals: they read `SuiTheme`.
-  Every interactive component is keyboard-focusable, shows its focus ring for
-  keyboard focus only (`visualFocus`), sets `Accessible.role` and
-  `Accessible.name`, and animates only on `SuiTheme.duration`. `SuiButton.qml`
-  is the pattern (QtQuick.Templates, no platform style).
-- A new component gets: a `qmldir` line, pytest-qt tests (render, focus,
-  accessible name) and a QML `TestCase` in `tests/qml/tst_*.qml`.
+- Components carry no colour or duration literals (`tests/test_rules.py`
+  enforces both) and take sizes from `SuiTheme`: native-only values go in the
+  NATIVE-ONLY section of `tools/gen_tokens.py`, never into a component.
+  Every interactive component is keyboard-focusable, shows its focus ring
+  (internal `SuiFocusRing`) for keyboard focus only (`visualFocus`, or the
+  lists' `keyboardInteraction`), sets `Accessible.role` and `Accessible.name`,
+  and animates only on `SuiTheme.duration`. `SuiButton.qml` is the pattern
+  (QtQuick.Templates, no platform style).
+- A new component gets: a `qmldir` line (`internal` for helpers), an entry in
+  `tests/test_components.py`'s `SPECS` (render in both themes, accessible
+  role and name, keyboard ring pixel, pointer focus), behaviour tests, a QML
+  `TestCase` in `tests/qml/tst_*.qml`, a place in `examples/gallery.qml`, a
+  line in the README table and the `check_dist.py` smoke scene.
+- Qt and QML warnings fail tests (`qt_log_level_fail`); tests delete their
+  scenes before the engine and avoid `metaObject()` on QML objects (stale
+  PySide wrappers).
 - Runtime dependency: `PySide6-Essentials` only, in the tested minor range
   (`>=<tested patch>,<next minor>`, today `>=6.11.2,<6.12`); apps pin exactly. Adding another runtime
   dependency is a reviewed change. Do not depend on the full `PySide6` meta-package.

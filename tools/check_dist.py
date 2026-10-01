@@ -3,13 +3,17 @@
 
     uv build && uv run python tools/check_dist.py [--smoke]
 
-- the wheel contains the package, the module's qmldir and every file qmldir names;
+- the wheel contains the package, the module's qmldir, every file qmldir names,
+  and every QML file of the source module (src/scshafe_qt/qml/Scshafe/Ui), which
+  qmldir must list;
 - the wheel's metadata requires PySide6-Essentials;
 - the sdist carries the token snapshot and the generator (it can rebuild SuiTheme.qml);
 - no file in either archive contains a home path or a token-shaped string
   (the library standard's payload scan, LIB-12a);
-- --smoke installs the wheel into a throwaway environment (uv run --isolated) and
-  loads Scshafe.Ui offscreen from the installed copy.
+- the sdist carries the gallery (examples/), which the tests load;
+- --smoke installs the wheel into a throwaway environment (uv run --isolated) and,
+  offscreen from the installed copy, builds every public component in one scene
+  and opens a dialog.
 """
 
 from __future__ import annotations
@@ -25,6 +29,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 DIST = ROOT / "dist"
 MODULE = "scshafe_qt/qml/Scshafe/Ui"
+SOURCE_MODULE = ROOT / "src" / MODULE
 # Assembled from pieces so this file does not match its own scan.
 FORBIDDEN = re.compile(
     b"|".join(
@@ -38,19 +43,65 @@ SMOKE = r"""
 import os, sys
 os.environ["QT_QPA_PLATFORM"] = "offscreen"
 os.environ["QT_QUICK_BACKEND"] = "software"
+from PySide6.QtCore import QMetaObject
 from PySide6.QtGui import QGuiApplication
 from PySide6.QtQml import QQmlComponent, QQmlEngine
+from PySide6.QtQuick import QQuickWindow
 import scshafe_qt
 app = QGuiApplication(sys.argv)
 engine = QQmlEngine()
 path = scshafe_qt.register(engine)
 assert "site-packages" in path, path  # the installed copy, not the checkout
 comp = QQmlComponent(engine)
-comp.setData(b"import QtQuick\nimport Scshafe.Ui\nSuiButton { text: SuiTheme.registryVersion }", "smoke.qml")
-obj = comp.create()
-assert obj is not None, [e.toString() for e in comp.errors()]
-print("smoke ok:", path, "button text", obj.property("text"))
+comp.setData(SCENE.encode(), "smoke.qml")
+window = comp.create()
+assert window is not None, [e.toString() for e in comp.errors()]
+QMetaObject.invokeMethod(window, "openDialog")
+app.processEvents()
+built = window.property("built")
+print("smoke ok:", path, "registry", window.property("registryVersion"), "components", built)
+assert built == EXPECTED, (built, EXPECTED)
 """
+
+# One instance of every public component (qmldir), built from the installed wheel.
+SMOKE_SCENE = """
+import QtQuick
+import Scshafe.Ui
+Window {
+    width: 900; height: 600; visible: true; color: SuiTheme.bg
+    property string registryVersion: SuiTheme.registryVersion
+    property int built: 0
+    function openDialog() { dialog.open() }
+    SuiAppShell {
+        anchors.fill: parent
+        Component.onCompleted: built++
+        sidebar: SuiSidebarList { model: [{ text: "Unsorted", count: 1, status: "ok" }]; Component.onCompleted: built++ }
+        content: Column {
+            SuiButton { text: "Go"; Component.onCompleted: built++ }
+            SuiIconButton { label: "Close"; icon.name: "close"; Component.onCompleted: built++ }
+            SuiTextField { label: "Note"; Component.onCompleted: built++ }
+            SuiSearchField { Component.onCompleted: built++ }
+            SuiChip { text: "Receipts"; tone: "bucket1"; Component.onCompleted: built++ }
+            SuiBadge { count: 3; Component.onCompleted: built++ }
+            SuiKbd { text: "K"; Component.onCompleted: built++ }
+            SuiIcon { name: "inbox"; Component.onCompleted: built++ }
+            SuiSidebarItem { text: "Item"; Component.onCompleted: built++ }
+            SuiList { width: 200; height: 60; model: 1
+                delegate: SuiListRow { title: "Ada"; Component.onCompleted: built++ }
+                Component.onCompleted: built++ }
+            SuiEmptyState { title: "Empty"; Component.onCompleted: built++ }
+            SuiBanner { text: "Note"; Component.onCompleted: built++ }
+            SuiToast { text: "Saved"; timeout: 0; Component.onCompleted: built++ }
+        }
+        inspector: SuiTrail { steps: [{ title: "Rules", outcome: "no match" }]; Component.onCompleted: built++ }
+    }
+    SuiToastHost { anchors.fill: parent; Component.onCompleted: { built++; show("ok") } }
+    SuiDialog { id: dialog; title: "Dialog"; Component.onCompleted: built++ }
+    SuiSheet { title: "Sheet"; Component.onCompleted: built++ }
+    SuiShortcutOverlay { shortcuts: [{ keys: ["?"], description: "Help" }]; Component.onCompleted: built++ }
+}
+"""
+SMOKE_COMPONENTS = 21  # public components in qmldir, each built once above
 
 
 def one(pattern: str) -> Path:
@@ -81,9 +132,18 @@ def check_wheel(wheel: Path, problems: list[str]) -> list[str]:
             target = f"{MODULE}/{line.split()[-1]}"
             if target not in names:
                 problems.append(f"{wheel.name}: qmldir names {target}, missing")
-        for required in ("scshafe_qt/__init__.py", f"{MODULE}/SuiTheme.qml", f"{MODULE}/SuiButton.qml"):
-            if required not in names:
-                problems.append(f"{wheel.name}: missing {required}")
+        listed = {line.split()[-1] for line in qmldir[1:] if line.strip()}
+        source = sorted(p.name for p in SOURCE_MODULE.glob("*.qml"))
+        for name in source:
+            if f"{MODULE}/{name}" not in names:
+                problems.append(f"{wheel.name}: missing {MODULE}/{name} (in the source module)")
+            if name not in listed:
+                problems.append(f"qmldir does not list {name}")
+        public = [line.split()[0] for line in qmldir[1:] if line.strip() and line.split()[0] not in ("singleton", "internal")]
+        if len(public) != SMOKE_COMPONENTS:
+            problems.append(f"qmldir has {len(public)} public components, the smoke scene builds {SMOKE_COMPONENTS}")
+        if "scshafe_qt/__init__.py" not in names:
+            problems.append(f"{wheel.name}: missing scshafe_qt/__init__.py")
         meta = next((n for n in names if n.endswith(".dist-info/METADATA")), None)
         if meta is None or b"requires-dist: pyside6-essentials" not in zf.read(meta).lower():
             problems.append(f"{wheel.name}: METADATA does not require PySide6-Essentials")
@@ -96,7 +156,8 @@ def check_sdist(sdist: Path, problems: list[str]) -> None:
         names = {m.name.split("/", 1)[1] for m in members}
         for m in members:
             scan(f"{sdist.name}:{m.name}", tf.extractfile(m).read(), problems)
-    for required in ("tokens/sui-tokens.json", "tools/gen_tokens.py", f"src/{MODULE}/qmldir", "pyproject.toml"):
+    for required in ("tokens/sui-tokens.json", "tools/gen_tokens.py", f"src/{MODULE}/qmldir", "pyproject.toml",
+                     "examples/gallery.py", "examples/gallery.qml"):
         if required not in names:
             problems.append(f"{sdist.name}: missing {required}")
 
@@ -119,7 +180,8 @@ def main() -> int:
     print(f"ok: {sdist.name} carries the snapshot and the generator; payload scan clean")
     if args.smoke:
         subprocess.run(
-            ["uv", "run", "--isolated", "--no-project", "--with", str(wheel), "python", "-c", SMOKE],
+            ["uv", "run", "--isolated", "--no-project", "--with", str(wheel), "python", "-c",
+             f"SCENE = {SMOKE_SCENE!r}\nEXPECTED = {SMOKE_COMPONENTS}\n" + SMOKE],
             check=True,
             cwd=DIST,
         )

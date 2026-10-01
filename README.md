@@ -12,8 +12,8 @@ type and motion.
   ships.
 - Python 3.14 (the 6.11 wheels are abi3 for CPython 3.10+ and declare
   `requires-python <3.15`).
-- Status: **Q0 scaffold**, unreleased. Components so far: `SuiTheme` (tokens) and
-  `SuiButton`. The v0.1 component set is Q1; the first release (0.1.0) is Q2.
+- Status: **Q1 components**, unreleased: `SuiTheme` (tokens) and the v0.1 component
+  set below. The first release (0.1.0) is Q2.
 
 ## Install (consumers)
 
@@ -61,8 +61,71 @@ Window {
 }
 ```
 
-Imports are versionless (`import Scshafe.Ui`). `SuiButton` variants: `default`,
-`primary`, `secondary`, `ghost`.
+Imports are versionless (`import Scshafe.Ui`).
+
+## Components
+
+| Component | What it is | Keyboard / accessibility |
+| --- | --- | --- |
+| `SuiAppShell` | sidebar \| content \| inspector frame; `sidebar`, `content`, `inspector` slots; `inspectorOpen` / `sidebarOpen` collapse a pane | splitters are Tab stops (role Separator): ←/→ resize by `resizeStep` (Shift ×4), Home/End min/max, Enter collapses; drag resizes; panes are named Panes |
+| `SuiSidebarList` + `SuiSidebarItem` | navigation list: icon, label, count badge, health dot (`status`: `ok` / `held` / `failing` / `none`), section headers (`section` role) | one Tab stop; ↑/↓ Home/End PgUp/PgDn move (skip disabled), Enter/Return/Space activate (`activated(index)`, `selectedIndex`); status and count in the accessible description |
+| `SuiList` + `SuiListRow` | single-selection `ListView` (`currentIndex`) of two-line rows (`title`, `subtitle`, `meta`, `unread`; children go to a trailing slot) | one Tab stop; ↓/`j`, ↑/`k` emit `nextRequested()` / `previousRequested()` and move (unless `autoNavigate: false`); Enter / double-click emit `activated(index)`; `selectNext()` etc. for app shortcuts |
+| `SuiChip`, `SuiBadge` | pills: `tone` `neutral` / `info` / `ok` / `warn` / `danger` or a bucket `bucket1`…`bucket8` (or 1–8); badge shows `count` (99+) | StaticText named by the text |
+| `SuiButton`, `SuiIconButton` | buttons; the icon button needs `label` (its accessible name; a `required` property) and `icon.name` (built-in) or `icon.source`; `checkable` toggles | Space/Enter; role Button (CheckBox when checkable) |
+| `SuiTextField`, `SuiSearchField` | inputs; search has an icon, a clear button and a `/` hook | `/` anywhere (not while typing in another field) fires `focusRequested()` then focuses and selects; Escape clears (`cleared()`), then propagates |
+| `SuiEmptyState` | icon, title, description, action slot | Grouping named by the title |
+| `SuiBanner` | inline status (`tone` info / ok / warn / danger), `dismissible` | warn/danger are AlertMessages; the dismiss button is a Tab stop |
+| `SuiToast`, `SuiToastHost` | `host.show(text, { title, tone, timeout, actionText, onAction })`, `dismiss(id)`, `clear()`; stacks bottom-right, at most `maxToasts` | AlertMessage; announced with `Accessible.announce` (assertive for danger); the timeout pauses on hover / focus; Escape dismisses |
+| `SuiDialog`, `SuiSheet` | modal dialog (`title`, `description`, content, `actions`) and a sheet sliding from an `edge` | focus moves in on open, Tab is trapped inside, Escape rejects, focus returns to the opener (with its ring if it had keyboard focus); role Dialog named by the title |
+| `SuiTrail` | vertical steps: `title`, `outcome` (+ `outcomeTone`), `detail`, `via` tag, `warning` marker | List of ListItems ("2. Classifier: Receipts", description = detail, via, warning) |
+| `SuiShortcutOverlay` | the `?` overlay of the app's `shortcuts` (`keys`, `description`, `group`, `separator`) | `?` toggles (not while typing); a SuiDialog |
+| `SuiIcon`, `SuiKbd` | built-in vector icons (`SuiIcon.names`) or a tinted image; a keyboard-key badge | icons are decorative unless given a `label` |
+
+```qml
+import QtQuick
+import Scshafe.Ui
+
+Window {
+    width: 1100; height: 700; visible: true; color: SuiTheme.bg
+    Shortcut { sequence: "j"; onActivated: inbox.selectNext() }     // from anywhere
+    SuiAppShell {
+        anchors.fill: parent
+        sidebar: SuiSidebarList {
+            label: "Mailboxes"; selectedIndex: 0
+            model: [ { section: "Buckets", text: "Receipts", iconName: "tag", count: 3, status: "ok" } ]
+        }
+        content: SuiList {
+            id: inbox; label: "Messages"; model: messages
+            delegate: SuiListRow {
+                width: ListView.view.width
+                title: model.sender; subtitle: model.subject; meta: model.time; unread: model.unread
+                SuiChip { text: model.bucketName; tone: model.bucket; dot: true }   // trailing slot
+            }
+            onActivated: (index) => sheet.open()
+        }
+        inspector: SuiTrail { steps: [ { title: "Classifier", outcome: "Receipts", outcomeTone: 1, via: "model" } ] }
+    }
+    SuiToastHost { id: toasts; anchors.fill: parent; z: 100 }
+}
+```
+
+Every interactive component is keyboard-focusable and draws its focus ring for
+keyboard focus only (text fields for any focus, as browsers do). Lists are one
+Tab stop with roving focus on the current row, which holds active focus (so a
+screen reader announces it); the ring returns after a pointer click as soon as
+an arrow key is used (the `:focus-visible` heuristic).
+
+### Gallery
+
+`examples/gallery.py` shows every component in one window with made-up data:
+
+```sh
+uv run python examples/gallery.py                       # follows the OS theme
+uv run python examples/gallery.py --theme dark --reduced-motion
+uv run python examples/gallery.py --screenshot DIR      # PNGs of four views x two themes
+```
+
+In the window: Tab / Shift+Tab, `j` / `k`, `1`–`8` (a toast), `/`, `?`.
 
 ### Theme and motion
 
@@ -78,16 +141,69 @@ is `SuiTheme.textStrong`; `SuiTheme.registry` maps CSS names to property names).
   "Reduce motion" setting.
 - Units: lengths are logical pixels (CSS px), durations milliseconds; shadows are
   `{ offsetX, offsetY, blur, spread, color }` for `MultiEffect`.
-- Native extensions not in the registry (focus-ring width/offset, type scale
-  `fontSizeXs`…`fontSize3xl`, weights, `disabledOpacity`, `alpha(color, amount)`) live
-  in the generator's template, documented in `SuiTheme.qml`.
+- Native-only tokens (not in the registry) live in the clearly marked NATIVE-ONLY
+  section of `tools/gen_tokens.py` and are generated into `SuiTheme.qml`: focus ring,
+  control metrics and layout defaults, type scale, the bucket palette, tone helpers
+  (`toneBase`, `toneText`, `toneFill`, `toneBorder`, `statusColor`), `monoFamily` and
+  `alpha(color, amount)`.
+
+### Tones and the bucket palette
+
+Status tones reuse the registry's tone tokens: `info` blue, `ok` green, `warn`
+yellow, `danger` red; `neutral` is `--sui-text` on `--sui-tint`. A chip's fill is
+its tone at `toneTint` (12 %, the web library's `TONE_TINT`), its border at 45 %.
+
+`bucket1`…`bucket8` are native-only categorical tones for user-defined groups,
+chosen in OKLCH about 45° apart (blue, teal, green, olive, amber, rust, rose,
+violet). `tests/test_tokens.py` checks, in both themes, that each bucket's text
+reaches 4.5:1 on its chip fill over every surface and every overlay (selection,
+hover, tint), that each base (dots, swatches) reaches 3:1 on every surface, and that
+the bases stay pairwise distinct (OKLab distance ≥ 0.07). Lowest ratios today:
+
+| | blue | teal | green | olive | amber | rust | rose | violet |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| light text on chip | 5.08 | 4.99 | 4.98 | 5.01 | 5.04 | 4.98 | 4.96 | 4.96 |
+| dark text on chip | 6.01 | 6.03 | 6.08 | 6.01 | 6.01 | 6.02 | 6.12 | 6.02 |
+| light base on surfaces | 3.69 | 3.73 | 3.73 | 3.68 | 3.75 | 3.76 | 3.82 | 3.77 |
+| dark base on surfaces | 7.20 | 7.62 | 7.66 | 7.37 | 7.10 | 6.87 | 6.75 | 6.90 |
+
+### Monospace
+
+`--sui-mono` is a CSS stack; a Qt font takes one family, so `SuiTheme.monoFamily`
+is the first installed candidate for the platform (assign it to override):
+
+- Linux: `monospace`, fontconfig's alias for the user's configured monospace face
+  (DejaVu Sans Mono, Noto Sans Mono, Liberation Mono or Ubuntu Mono on common
+  distributions);
+- macOS: SF Mono (when installed), else Menlo (always present), Monaco;
+- Windows: Cascadia Mono, Consolas, Courier New;
+- fallback: `monospace`.
 
 ### Accessibility contract
 
 Every interactive component is keyboard-focusable, shows a focus ring
-(`SuiTheme.focusRing`, outside the control) for keyboard focus only (Qt's
-`visualFocus`, the native `:focus-visible`), sets `Accessible.role` and
-`Accessible.name`, and animates only on `SuiTheme.duration`.
+(`SuiTheme.focusRing`, outside the control, or inset on list rows) for keyboard
+focus only (Qt's `visualFocus`, the native `:focus-visible`), sets
+`Accessible.role` and `Accessible.name`, and animates only on `SuiTheme.duration`.
+Components carry no colour literals (`tests/test_rules.py` enforces it, as
+`@scshafe/ui` does for its stylesheets) and every animation runs on
+`SuiTheme.duration`, so `reducedMotion` stops them all (checked statically and at
+runtime over the gallery).
+
+### Qt version notes
+
+The QML targets Qt 6.11 and uses no 6.9–6.11-only QML API: the suite also passes
+on PySide6 6.8.3 except for the dialog's accessible name (below). Worth knowing:
+
+- `SuiIcon` tints image icons with `IconImage` from `QtQuick.Controls.impl`, the
+  module Qt's own styles use; it is not a public API with compatibility promises,
+  so a Qt upgrade re-checks it (the tests load it).
+- `SuiToastHost` announces toasts with `Accessible.announce()` (Qt 6.8+), guarded.
+- A dialog's accessible name comes from Qt: on 6.11 `T.Dialog` names its popup by
+  `title` once accessibility is active (an assistive technology is running); Qt
+  6.8.3 leaves it unnamed.
+- Qt (through 6.11) reports no OS reduced-motion preference; the app sets
+  `SuiTheme.reducedMotion`.
 
 ## Token pipeline
 
@@ -126,13 +242,17 @@ uv sync --frozen                                   # .venv with PySide6 + pytest
 uv run python tools/gen_tokens.py --check
 uv run pytest                                      # offscreen; includes the QML TestCases
 uv run python tests/qml_runner.py                  # QML TestCases alone (tests/qml/tst_*.qml)
+SCSHAFE_QT_SCREENSHOTS=DIR uv run pytest tests/test_gallery.py   # gallery PNGs into DIR
 uv build && uv run python tools/check_dist.py --smoke
 ```
 
 Tests run under `QT_QPA_PLATFORM=offscreen` and `QT_QUICK_BACKEND=software` (set by
 `tests/conftest.py` and `tests/qml_runner.py`). PySide6 wheels ship no
 `qmltestrunner`; `tests/qml_runner.py` uses `PySide6.QtQuickTest`'s
-`QUICK_TEST_MAIN_WITH_SETUP` with `scshafe_qt.register`.
+`QUICK_TEST_MAIN_WITH_SETUP` with `scshafe_qt.register`. Any Qt or QML warning
+fails a test (`qt_log_level_fail = "WARNING"`). The gallery screenshot test writes
+its PNGs to `$SCSHAFE_QT_SCREENSHOTS` (else pytest's temporary directory); they are
+for review and never committed.
 
 On Ubuntu the wheels need these system libraries (CI installs them): `libegl1 libgl1
 libxkbcommon0 libfontconfig1 libfreetype6 libx11-6 libglib2.0-0t64 libdbus-1-3` and a
