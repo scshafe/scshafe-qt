@@ -58,6 +58,9 @@ addopts = "-ra --strict-markers"
 qt_api = "pyside6"
 # Any Qt/QML warning (binding errors, unknown properties, ...) fails the test.
 qt_log_level_fail = "WARNING"
+# Except one: on macOS the offscreen platform's theme font is "Sans Serif", which macOS
+# lacks, so Qt warns that resolving it was slow. Headless-only (cocoa uses the system font).
+qt_log_ignore = ["^Populating font family aliases took .* missing font family \"Sans Serif\""]
 
 [tool.uv]
 # The toolchain pin (LIB-04's analogue): CI's setup-uv reads this version.
