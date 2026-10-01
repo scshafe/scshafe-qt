@@ -52,3 +52,7 @@ include = [
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"
 qt_api = "pyside6"
+
+[tool.uv]
+# The toolchain pin (LIB-04's analogue): CI's setup-uv reads this version.
+required-version = "==0.12.21"
