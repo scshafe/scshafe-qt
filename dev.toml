@@ -1,0 +1,26 @@
+# Project intent (LIB-01). The schema is illustrative until M2/M7 fix it.
+schema_version = 1
+
+[project]
+id = "scshafe-qt"
+class = "managed"
+
+[app]
+kind = "library"
+
+[skills]
+# LIB-02 asks for .agents/skills; the catalog is M4. Recorded gap.
+selected = []
+
+# Hand-written, not generated: scshafe-dev has no Python library template yet
+# (`dev new library --lang python` is planned after B7). Q0 of the native UI plan
+# created this repository on 2026-10-01; the table keeps the [template] shape so
+# a later adopt can replace it. `dev check` reports it as a gap until then
+# (source is not scshafe/scshafe-dev).
+[template]
+source = "hand-written"
+version = "0"
+released = false
+dirty = false
+mode = "manual"
+params = { kind = "library", lang = "python", name = "scshafe-qt", description = "The SCSHAFE native component library: the Scshafe.Ui QML module (Qt Quick) for PySide6 apps, themed from the @scshafe/ui token registry.", distribution = "scshafe-qt", import = "scshafe_qt", qml_module = "Scshafe.Ui", deps = ["PySide6-Essentials>=6.8.3,<6.9"], qt = "6.8 LTS", python = "3.13", date = "2026-10-01" }
