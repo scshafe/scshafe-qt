@@ -48,6 +48,7 @@ T.Control {
             anchors.verticalCenter: parent.verticalCenter
         }
         Text {
+            textFormat: Text.PlainText
             objectName: "label"
             text: control.text
             font: control.font

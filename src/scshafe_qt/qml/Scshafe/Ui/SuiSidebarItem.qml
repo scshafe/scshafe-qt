@@ -63,6 +63,7 @@ T.ItemDelegate {
             Layout.alignment: Qt.AlignVCenter
         }
         Text {
+            textFormat: Text.PlainText
             objectName: "label"
             text: control.text
             font: control.font

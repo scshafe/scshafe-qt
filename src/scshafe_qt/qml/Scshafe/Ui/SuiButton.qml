@@ -41,6 +41,7 @@ T.Button {
     readonly property bool _hot: (hovered || visualFocus) && enabled
 
     contentItem: Text {
+        textFormat: Text.PlainText
         objectName: "label"
         text: control.text
         font: control.font

@@ -21,6 +21,7 @@ T.Control {
     Accessible.name: text
 
     contentItem: Text {
+        textFormat: Text.PlainText
         text: control.text
         font: control.font
         color: SuiTheme.text

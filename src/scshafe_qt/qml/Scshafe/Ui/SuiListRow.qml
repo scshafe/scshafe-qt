@@ -79,6 +79,7 @@ T.ItemDelegate {
                 spacing: SuiTheme.spaceSm
                 Layout.fillWidth: true
                 Text {
+                    textFormat: Text.PlainText
                     id: titleText
                     objectName: "title"
                     text: control.title
@@ -89,6 +90,7 @@ T.ItemDelegate {
                     Layout.fillWidth: true
                 }
                 Text {
+                    textFormat: Text.PlainText
                     objectName: "meta"
                     visible: text !== ""
                     text: control.meta
@@ -101,6 +103,7 @@ T.ItemDelegate {
                 spacing: SuiTheme.spaceSm
                 Layout.fillWidth: true
                 Text {
+                    textFormat: Text.PlainText
                     objectName: "subtitle"
                     text: control.subtitle
                     font.pixelSize: SuiTheme.fontSizeMd

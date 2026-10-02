@@ -112,6 +112,7 @@ T.Control {
                         spacing: SuiTheme.spaceSm
                         Layout.fillWidth: true
                         Text {
+                            textFormat: Text.PlainText
                             objectName: "title"
                             text: step.title
                             font.pixelSize: SuiTheme.fontSizeMd
@@ -136,6 +137,7 @@ T.Control {
                             border.width: 1
                             border.color: SuiTheme.line
                             Text {
+                                textFormat: Text.PlainText
                                 id: viaText
                                 anchors.centerIn: parent
                                 text: "via " + step.via
@@ -146,6 +148,7 @@ T.Control {
                         }
                     }
                     Text {
+                        textFormat: Text.PlainText
                         objectName: "detail"
                         visible: text !== ""
                         text: step.detail
@@ -155,6 +158,7 @@ T.Control {
                         Layout.fillWidth: true
                     }
                     Text {
+                        textFormat: Text.PlainText
                         objectName: "warning"
                         visible: step.warningText !== ""
                         text: step.warningText

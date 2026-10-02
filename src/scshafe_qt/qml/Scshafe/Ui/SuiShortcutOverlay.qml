@@ -91,6 +91,7 @@ SuiDialog {
                     spacing: SuiTheme.spaceXs
                     Layout.fillWidth: true
                     Text {
+                        textFormat: Text.PlainText
                         objectName: "groupHeader"
                         visible: modelData.name !== ""
                         text: modelData.name
@@ -128,6 +129,7 @@ SuiDialog {
                                         required property int index
                                         spacing: SuiTheme.spaceXs
                                         Text {
+                                            textFormat: Text.PlainText
                                             visible: index > 0
                                             text: entryRow.separator
                                             font.pixelSize: SuiTheme.fontSizeXs
@@ -139,6 +141,7 @@ SuiDialog {
                                 }
                             }
                             Text {
+                                textFormat: Text.PlainText
                                 objectName: "shortcutDescription"
                                 text: entryRow.modelData.description
                                 font.pixelSize: SuiTheme.fontSizeMd

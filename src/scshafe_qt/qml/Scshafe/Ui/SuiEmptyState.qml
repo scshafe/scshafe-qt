@@ -45,6 +45,7 @@ T.Control {
                 Layout.bottomMargin: SuiTheme.spaceXs
             }
             Text {
+                textFormat: Text.PlainText
                 objectName: "title"
                 text: control.title
                 visible: text !== ""
@@ -58,6 +59,7 @@ T.Control {
                 Accessible.name: text
             }
             Text {
+                textFormat: Text.PlainText
                 objectName: "description"
                 text: control.description
                 visible: text !== ""

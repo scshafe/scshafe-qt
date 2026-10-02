@@ -59,6 +59,7 @@ T.Control {
             spacing: 2
             Layout.fillWidth: true
             Text {
+                textFormat: Text.PlainText
                 objectName: "title"
                 visible: text !== ""
                 text: control.title
@@ -69,6 +70,7 @@ T.Control {
                 Layout.fillWidth: true
             }
             Text {
+                textFormat: Text.PlainText
                 objectName: "body"
                 visible: text !== ""
                 text: control.text

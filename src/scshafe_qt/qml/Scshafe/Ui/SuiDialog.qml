@@ -106,6 +106,7 @@ T.Dialog {
         spacing: SuiTheme.spaceXs
         visible: control.title !== "" || control.description !== ""
         Text {
+            textFormat: Text.PlainText
             objectName: "title"
             text: control.title
             visible: text !== ""
@@ -121,6 +122,7 @@ T.Dialog {
             Accessible.name: text
         }
         Text {
+            textFormat: Text.PlainText
             objectName: "description"
             text: control.description
             visible: text !== ""

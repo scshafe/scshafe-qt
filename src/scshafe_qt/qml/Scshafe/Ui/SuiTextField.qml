@@ -37,6 +37,7 @@ T.TextField {
     Accessible.editable: true
 
     Text {
+        textFormat: Text.PlainText
         id: placeholder
         objectName: "placeholder"
         x: control.leftPadding

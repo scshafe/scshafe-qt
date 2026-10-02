@@ -106,6 +106,7 @@ ListView {
     section.property: "section"
     section.criteria: ViewSection.FullString
     section.delegate: Text {
+        textFormat: Text.PlainText
         required property string section
         objectName: "sectionHeader"
         width: ListView.view ? ListView.view.width - ListView.view.leftMargin - ListView.view.rightMargin : implicitWidth
