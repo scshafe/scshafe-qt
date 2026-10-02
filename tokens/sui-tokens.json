@@ -2,10 +2,10 @@
   "schema": 1,
   "source": {
     "package": "@scshafe/ui",
-    "version": "0.3.1",
+    "version": "0.4.1",
     "file": "lib/tokens.js",
     "fileSha256": "8e12d3f3037327f33210dfa835bcebc165d7573cdb9ed95e8f9950444b3c15fd",
-    "commit": "426d87340d54739ae9e5694ab31859f5f9b0b7fc"
+    "commit": "8a0c31402ef9f3c1aebf7141911ef564c9092b86"
   },
   "registryHash": "sha256:23d14d4e53cce6a6843b81b122879292375f2a0c390c716e73a387a7c5a67b47",
   "reducedMotionDuration": "0s",
