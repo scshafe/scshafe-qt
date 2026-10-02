@@ -7,6 +7,20 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.1.1 — 2026-10-02
+
+Security release.
+
+- **Caller text is plain text.** Every `Text` in `Scshafe.Ui` sets
+  `textFormat: Text.PlainText` (25 elements, 14 components). With Qt's default
+  `AutoText`, a caller string that looked like HTML rendered as rich text and
+  fetched remote images: a mail subject with `<img src=…>` made Qt request it,
+  a tracking beacon (found by mailroom-desktop's review). No component needs
+  rich text, so there is no opt-in. `tests/test_plain_text.py` proves it with
+  a counting HTTP server (0.1.0: fetched; 0.1.1: zero requests) and fails any
+  new `Text` without the line.
+- Token snapshot from `@scshafe/ui` 0.4.1: the registry is unchanged (same
+  sha256); only the recorded source version moves.
 ## 0.1.0 — 2026-10-01
 
 First release.

@@ -12,7 +12,10 @@ type and motion.
   ships.
 - Python 3.14 (the 6.11 wheels are abi3 for CPython 3.10+ and declare
   `requires-python <3.15`).
-- Status: **0.1.0**: `SuiTheme` (tokens) and the v0.1 component set below.
+- Status: **0.1.1**: `SuiTheme` (tokens) and the v0.1 component set below.
+- **Untrusted text is safe to pass:** every component renders caller strings as plain text
+  (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
+  0.1.0 rendered HTML-looking strings as rich text (fixed in 0.1.1; upgrade).
 
 ## Install (consumers)
 
@@ -25,9 +28,9 @@ download path is settled (at the first consumer, `mailroom-desktop`), fetch and 
 the wheel with `gh`, then add the file:
 
 ```sh
-gh release download v0.1.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS -D vendor
+gh release download v0.1.1 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS -D vendor
 (cd vendor && sha256sum -c --ignore-missing SHA256SUMS)
-uv add ./vendor/scshafe_qt-0.1.0-py3-none-any.whl   # uv.lock records its sha256
+uv add ./vendor/scshafe_qt-0.1.1-py3-none-any.whl   # uv.lock records its sha256
 ```
 
 The library accepts the Qt minor it is tested on (`PySide6-Essentials>=6.11.2,<6.12`);
