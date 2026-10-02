@@ -6,21 +6,31 @@ id = "scshafe-qt"
 class = "managed"
 
 [app]
-kind = "library"
+# A Python library, checked as a scshafe-dev `tool` until scshafe-dev has a
+# Python library kind (the library kind's rules are npm-only). [template]
+# params still record kind = "library", lang = "python" for that adoption.
+kind = "tool"
+
+# BASE-06: the one command that verifies this repository; CI runs it (and,
+# before it, `uv run --frozen python tools/gen_tokens.py --check`).
+[verify]
+command = "uv run --frozen pytest -v"
 
 [skills]
 # LIB-02 asks for .agents/skills; the catalog is M4. Recorded gap.
 selected = []
 
-# Hand-written, not generated: scshafe-dev has no Python library template yet
-# (`dev new library --lang python` is planned after B7). Q0 of the native UI plan
-# created this repository on 2026-10-01; the table keeps the [template] shape so
-# a later adopt can replace it. `dev check` reports it as a gap until then
-# (source is not scshafe/scshafe-dev).
+# Adopted, not generated (D-6): adopted as a `tool` on 2026-10-02 (B13). It
+# records which scshafe-dev standard the repository was adopted under; it does
+# not claim scshafe-dev rendered this repository's files. Before adoption the
+# table was hand-written (Q0 of the native UI plan, 2026-10-01) with the params
+# a future Python library template would use:
+#   params = { kind = "library", lang = "python", name = "scshafe-qt", description = "The SCSHAFE native component library: the Scshafe.Ui QML module (Qt Quick) for PySide6 apps, themed from the @scshafe/ui token registry.", distribution = "scshafe-qt", import = "scshafe_qt", qml_module = "Scshafe.Ui", deps = ["PySide6-Essentials>=6.11.2,<6.12"], qt = "6.11", python = "3.14", date = "2026-10-01" }
 [template]
-source = "hand-written"
-version = "0"
+source = "scshafe/scshafe-dev"
+version = "0.1.0"
+commit = "e865d63bd01aaf0cc77091ceb2e1110a4dc42f08"
 released = false
 dirty = false
-mode = "manual"
-params = { kind = "library", lang = "python", name = "scshafe-qt", description = "The SCSHAFE native component library: the Scshafe.Ui QML module (Qt Quick) for PySide6 apps, themed from the @scshafe/ui token registry.", distribution = "scshafe-qt", import = "scshafe_qt", qml_module = "Scshafe.Ui", deps = ["PySide6-Essentials>=6.11.2,<6.12"], qt = "6.11", python = "3.14", date = "2026-10-01" }
+mode = "adopted"
+params = { kind = "tool", name = "scshafe-qt", date = "2026-10-02" }
