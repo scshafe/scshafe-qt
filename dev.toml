@@ -28,9 +28,9 @@ selected = []
 #   params = { kind = "library", lang = "python", name = "scshafe-qt", description = "The SCSHAFE native component library: the Scshafe.Ui QML module (Qt Quick) for PySide6 apps, themed from the @scshafe/ui token registry.", distribution = "scshafe-qt", import = "scshafe_qt", qml_module = "Scshafe.Ui", deps = ["PySide6-Essentials>=6.11.2,<6.12"], qt = "6.11", python = "3.14", date = "2026-10-01" }
 [template]
 source = "scshafe/scshafe-dev"
-version = "0.1.0"
-commit = "e865d63bd01aaf0cc77091ceb2e1110a4dc42f08"
-released = false
+version = "0.2.0"
+commit = "8a4096c73134fe912e2c1f4355a9fe1ea122e70f"
+released = true
 dirty = false
 mode = "adopted"
 params = { kind = "tool", name = "scshafe-qt", date = "2026-10-02" }
