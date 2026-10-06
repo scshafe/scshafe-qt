@@ -10,20 +10,25 @@ type and motion.
   releases track the current minor (6.8 LTS patches for open source ended at
   6.8.3), so the library follows the current minor; 6.12 comes when PySide6 6.12
   ships.
-- Python 3.14 (the 6.11 wheels are abi3 for CPython 3.10+ and declare
-  `requires-python <3.15`).
-- Status: **0.1.2**: `SuiTheme` (tokens) and the v0.1 component set below.
+- Python **3.12, 3.13 and 3.14** (`requires-python >=3.12`, from 0.2.0; 0.1.x needed
+  3.14). CI tests all three. The PySide6 6.11 wheels are abi3 for CPython 3.10+ and
+  declare `requires-python <3.15`, so a newer Python waits for a PySide6 that supports it.
+- Status: **0.2.0**: `SuiTheme` (tokens) and the v0.1 component set below.
 - **Untrusted text is safe to pass:** every component renders caller strings as plain text
   (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
   0.1.0 rendered HTML-looking strings as rich text (fixed in 0.1.1; upgrade).
 
 ## Install (consumers)
 
-From [PyPI](https://pypi.org/project/scshafe-qt/) (from 0.1.2):
+From [PyPI](https://pypi.org/project/scshafe-qt/) (from 0.1.2), on Python 3.12 or later
+(3.14 only before 0.2.0):
 
 ```sh
 uv add scshafe-qt            # or: pip install scshafe-qt
 ```
+
+An app that pins `scshafe-qt>=0.1.2,<0.2` stays on 0.1.2; widen the range to `<0.3` for
+0.2.0 (same components and API; only the supported Python range changed).
 
 Every release is also a GitHub Release of `scshafe/scshafe-qt` with the same wheel and
 sdist, their sha256 in the notes and a `SHA256SUMS` file. `publish.yml` uploads the
@@ -32,12 +37,12 @@ PEP 740 attestations from trusted publishing. As a fallback, install straight fr
 Release; the repository is public, so the download URLs need no token:
 
 ```sh
-pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.1.2/scshafe_qt-0.1.2-py3-none-any.whl
+pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.2.0/scshafe_qt-0.2.0-py3-none-any.whl
 # or, in a uv project, a pinned URL source (uv.lock records its sha256):
-uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.1.2/scshafe_qt-0.1.2-py3-none-any.whl"
+uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.2.0/scshafe_qt-0.2.0-py3-none-any.whl"
 ```
 
-To check the files yourself: `gh release download v0.1.2 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
+To check the files yourself: `gh release download v0.2.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
 then `sha256sum -c --ignore-missing SHA256SUMS`.
 
 The library accepts the Qt minor it is tested on (`PySide6-Essentials>=6.11.2,<6.12`);
@@ -243,7 +248,9 @@ Change a token in scshafe-ui, release it, then `--refresh` here in one commit.
 
 Toolchain: [uv](https://docs.astral.sh/uv/) 0.12.21 (`[tool.uv] required-version`),
 Python 3.14 (`.python-version`; uv uses a matching interpreter or downloads a managed
-CPython 3.14, as CI does), `uv.lock` committed.
+CPython 3.14), `uv.lock` committed (one lock for every supported Python). To run the
+suite on another supported Python, `UV_PYTHON=3.12 uv run --frozen pytest` (uv rebuilds
+`.venv` for that interpreter; plain `uv sync --frozen` returns it to 3.14), as CI does.
 
 ```sh
 uv sync --frozen                                   # .venv with PySide6 + pytest-qt
@@ -272,10 +279,11 @@ environment (`uv pip install -e <path>` in the app's venv) and never commit that
 ## CI
 
 `.github/workflows/ci.yml`, GitHub-hosted runners only, `contents: read`, actions pinned
-by SHA: Linux (`ubuntu-latest`) on every push and pull request; macOS (`macos-latest`,
-Apple Silicon) on `workflow_dispatch` and weekly, to keep macOS minutes low (release
-tags run `publish.yml`, which verifies on both).
-Both run `uv sync --frozen`, the token check, the tests, `uv build` and the
+by SHA: Linux (`ubuntu-latest`) on Python 3.12, 3.13 and 3.14 on every push and pull
+request; macOS (`macos-latest`, Apple Silicon) on Python 3.12 and 3.14 on
+`workflow_dispatch` and weekly, to keep macOS minutes low (release tags run
+`publish.yml`, which verifies on both, on `.python-version`'s 3.14). The matrix sets
+`UV_PYTHON`. Every job runs `uv sync --frozen`, the token check, the tests, `uv build` and the
 distribution check (wheel carries the QML module, payload scan, install-and-load smoke).
 
 ## Releasing

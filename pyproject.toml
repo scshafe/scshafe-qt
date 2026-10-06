@@ -1,15 +1,15 @@
 [project]
 name = "scshafe-qt"
-version = "0.1.2"
+version = "0.2.0"
 description = "The SCSHAFE native component library: the Scshafe.Ui QML module (Qt Quick) for PySide6 apps, themed from the @scshafe/ui token registry."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "scshafe-qt contributors" }]
-# PySide6 6.11.x wheels (abi3, cp310) declare requires-python ">=3.10,<3.15";
-# the lower bound is the oldest Python the library is tested on
-# (.python-version pins 3.14).
-requires-python = ">=3.14,<3.15"
+# The lower bound is the oldest Python CI tests (3.12, 3.13 and 3.14; local
+# development uses .python-version, 3.14). PySide6-Essentials 6.11.x wheels
+# (abi3, cp310) declare requires-python ">=3.10,<3.15".
+requires-python = ">=3.12"
 keywords = ["qt", "qml", "pyside6", "qt-quick", "components", "design-tokens", "ui"]
 # The license is the SPDX expression above (PEP 639); no License :: classifier.
 classifiers = [
@@ -21,6 +21,8 @@ classifiers = [
     "Operating System :: MacOS",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: User Interfaces",
