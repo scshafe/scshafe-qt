@@ -12,26 +12,33 @@ type and motion.
   ships.
 - Python 3.14 (the 6.11 wheels are abi3 for CPython 3.10+ and declare
   `requires-python <3.15`).
-- Status: **0.1.1**: `SuiTheme` (tokens) and the v0.1 component set below.
+- Status: **0.1.2**: `SuiTheme` (tokens) and the v0.1 component set below.
 - **Untrusted text is safe to pass:** every component renders caller strings as plain text
   (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
   0.1.0 rendered HTML-looking strings as rich text (fixed in 0.1.1; upgrade).
 
 ## Install (consumers)
 
-Releases are wheels attached to GitHub Releases of `scshafe/scshafe-qt`, never a
-package index; each Release lists the wheel's and sdist's sha256 and carries a
-`SHA256SUMS` file. The repository is private, and GitHub serves a private Release's
-assets only through the API (`releases/download/…` URLs answer 404 even with a token),
-so a plain URL pin in `pyproject.toml` cannot be fetched by `uv`. Until the consumer
-download path is settled (at the first consumer, `mailroom-desktop`), fetch and check
-the wheel with `gh`, then add the file:
+From [PyPI](https://pypi.org/project/scshafe-qt/) (from 0.1.2):
 
 ```sh
-gh release download v0.1.1 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS -D vendor
-(cd vendor && sha256sum -c --ignore-missing SHA256SUMS)
-uv add ./vendor/scshafe_qt-0.1.1-py3-none-any.whl   # uv.lock records its sha256
+uv add scshafe-qt            # or: pip install scshafe-qt
 ```
+
+Every release is also a GitHub Release of `scshafe/scshafe-qt` with the same wheel and
+sdist, their sha256 in the notes and a `SHA256SUMS` file. `publish.yml` uploads the
+very files it attached to the Release (PyPI and the Release are byte-identical), with
+PEP 740 attestations from trusted publishing. As a fallback, install straight from a
+Release; the repository is public, so the download URLs need no token:
+
+```sh
+pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.1.2/scshafe_qt-0.1.2-py3-none-any.whl
+# or, in a uv project, a pinned URL source (uv.lock records its sha256):
+uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.1.2/scshafe_qt-0.1.2-py3-none-any.whl"
+```
+
+To check the files yourself: `gh release download v0.1.2 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
+then `sha256sum -c --ignore-missing SHA256SUMS`.
 
 The library accepts the Qt minor it is tested on (`PySide6-Essentials>=6.11.2,<6.12`);
 the app's own `uv.lock` pins one exact PySide6.
@@ -225,7 +232,7 @@ src/scshafe_qt/qml/Scshafe/Ui/SuiTheme.qml   committed, header records the sourc
 - `uv run python tools/gen_tokens.py` regenerates `SuiTheme.qml` from the snapshot.
 - `uv run python tools/gen_tokens.py --check` fails if `SuiTheme.qml` or the qmldir
   `singleton` entry is stale, and, when the registry is reachable, if the snapshot is.
-  CI cannot read the private registry, so there it checks QML against the snapshot and
+  CI has no scshafe-ui checkout, so there it checks QML against the snapshot and
   says it skipped the registry comparison (`--require-source` makes that a failure).
 - `tests/test_tokens.py` checks every token in both themes against the snapshot
   (and the live registry when reachable).
@@ -284,8 +291,15 @@ Linux and macOS; rebuilds the tag and requires the same bytes (hatchling builds 
 reproducible); creates a **draft** Release with the wheel, sdist and `SHA256SUMS`;
 downloads those assets back, checks their hashes and runs the payload check and the
 install-and-load smoke on the downloaded wheel; and only then publishes the Release.
-Versions are never reused, moved or deleted.
+Every Release asset is the build job's own file (passed as a run artifact); the rebuild
+only proves reproducibility. Last, the `pypi` job (environment `pypi`, deployable from
+`v*` tags only; `id-token: write`, no stored token) checks the same files against the
+build digests and the Release's `SHA256SUMS`, uploads them to PyPI by trusted publishing
+(`pypa/gh-action-pypi-publish`, with attestations) and confirms PyPI serves those
+digests. If that job fails, the Release stays; re-run the failed job. The dry run stops
+before the Release and PyPI. Versions are never reused, moved or deleted, here or on
+PyPI (PyPI never accepts a file name twice).
 
 ## License
 
-MIT, see [LICENSE](LICENSE).
+MIT, see [LICENSE](https://github.com/scshafe/scshafe-qt/blob/main/LICENSE).

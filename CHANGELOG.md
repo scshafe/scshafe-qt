@@ -7,6 +7,24 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.1.2 — 2026-10-05
+
+Published to PyPI; docs. No library change (the wheel's code and QML module
+are those of 0.1.1).
+
+- **On PyPI:** `pip install scshafe-qt` / `uv add scshafe-qt`. `publish.yml`
+  gains a `pypi` job: after the GitHub Release is published it uploads the
+  build job's wheel and sdist (a run artifact; the Release carries the same
+  files) by trusted publishing (OIDC, environment `pypi`, `v*` tags only,
+  PEP 740 attestations), then checks that PyPI serves the verified digests.
+- Package metadata for PyPI: dropped the `Private :: Do Not Upload`
+  classifier (PyPI refuses it), the misleading `Framework :: Pytest` and the
+  `License ::` classifier (the license is the PEP 639 expression `MIT`); added
+  keywords, status, audience, OS and topic classifiers and project URLs
+  (homepage, docs, issues, releases).
+- README: install from PyPI, or from a Release URL as a fallback (the
+  repository is public: Release downloads need no token); the CI token-check
+  note no longer calls `@scshafe/ui` private.
 ## 0.1.1 — 2026-10-02
 
 Security release.
