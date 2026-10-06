@@ -25,10 +25,20 @@ env:
   QT_QUICK_BACKEND: software
 
 jobs:
+  # Every supported Python on Linux (requires-python >=3.12); local
+  # development and publish.yml use .python-version (3.14). UV_PYTHON
+  # overrides .python-version for uv sync, uv run and the smoke install.
   linux:
     if: github.event_name != 'schedule'
+    name: linux (Python ${{ matrix.python }})
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.13", "3.14"]
+    env:
+      UV_PYTHON: ${{ matrix.python }}
     steps:
       # actions/checkout v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
@@ -44,8 +54,8 @@ jobs:
             libegl1 libgl1 libxkbcommon0 libfontconfig1 libfreetype6 \
             libx11-6 libglib2.0-0t64 libdbus-1-3 fonts-dejavu-core
       # astral-sh/setup-uv v10.2.0; the uv version comes from pyproject.toml
-      # [tool.uv] required-version, Python from .python-version (uv downloads a
-      # managed CPython 3.14).
+      # [tool.uv] required-version, Python from UV_PYTHON (uv downloads a
+      # managed CPython of the matrix version).
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
       - run: uv sync --frozen
       - name: Generated tokens are current
@@ -57,10 +67,18 @@ jobs:
           uv build
           uv run --frozen python tools/check_dist.py --smoke
 
+  # The oldest and newest supported Python on macOS (3.13 runs on Linux).
   macos:
     if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    name: macos (Python ${{ matrix.python }})
     runs-on: macos-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.12", "3.14"]
+    env:
+      UV_PYTHON: ${{ matrix.python }}
     steps:
       # actions/checkout v7.0.1
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1

@@ -35,8 +35,12 @@ A managed library (Python variant of the SCSHAFE library standard,
   (`>=<tested patch>,<next minor>`, today `>=6.11.2,<6.12`); apps pin exactly. Adding another runtime
   dependency is a reviewed change. Do not depend on the full `PySide6` meta-package.
 - Toolchain: uv `==0.12.21` (`[tool.uv] required-version`), Python from
-  `.python-version`, `uv.lock` committed, installs with `uv sync --frozen`. No
-  `requirements*.txt`, no pip-only workflows.
+  `.python-version` (3.14) for development, `uv.lock` committed, installs with
+  `uv sync --frozen`. No `requirements*.txt`, no pip-only workflows.
+- Supported Python: `requires-python >=3.12` (from 0.2.0). Code stays
+  3.12-compatible (every module has `from __future__ import annotations`; no
+  3.13+ stdlib or syntax); `ci.yml` tests 3.12, 3.13 and 3.14 through
+  `UV_PYTHON`. Raising the floor is a minor bump with a changelog entry.
 - `dist/` and `.venv/` are never committed. Builds are reproducible (hatchling);
   `tools/check_dist.py` is the payload gate (QML module present, no home paths
   or token-shaped strings).

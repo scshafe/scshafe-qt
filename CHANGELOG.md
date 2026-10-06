@@ -7,6 +7,24 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.2.0 — 2026-10-06
+
+Python 3.12 and 3.13 supported. No change to the components, the QML module
+or the Python API: the wheel's code is that of 0.1.2.
+
+- **`requires-python = ">=3.12"`** (was `>=3.14,<3.15`), with classifiers for
+  3.12, 3.13 and 3.14. The code used nothing newer than 3.12: every module
+  already had `from __future__ import annotations`, and the stdlib and syntax
+  in use parse and pass the suite on 3.12. `PySide6-Essentials` 6.11.x wheels
+  are abi3 for CPython 3.10+ (they declare `<3.15`, which bounds the usable
+  range in practice); the dependency range is unchanged (`>=6.11.2,<6.12`).
+- `uv.lock` regenerated for `>=3.12`: the same package versions.
+- CI: Linux on 3.12, 3.13 and 3.14 on every push and pull request; macOS on
+  3.12 and 3.14 on dispatch and weekly (`UV_PYTHON` per matrix entry).
+  Development and `publish.yml` keep `.python-version` (3.14).
+- A minor bump because the supported range widened: apps pinned
+  `scshafe-qt>=0.1.2,<0.2` stay on 0.1.2 until they widen the pin.
+
 ## 0.1.2 — 2026-10-05
 
 Published to PyPI; docs. No library change (the wheel's code and QML module
