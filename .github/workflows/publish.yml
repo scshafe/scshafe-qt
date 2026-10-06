@@ -2,9 +2,11 @@ name: Publish
 
 # The library standard's Python variant. A release is an annotated tag
 # v<x.y.z> on a commit on main whose pyproject.toml version is <x.y.z>. This
-# workflow is the only publisher: the wheel and sdist are attached to a GitHub
-# Release (never a package index). workflow_dispatch exists only for the dry
-# run: it runs every check, including macOS, and stops before the Release.
+# workflow is the only publisher. The build job's wheel and sdist (one run
+# artifact) are attached to a GitHub Release and then uploaded, byte for byte
+# the same files, to PyPI by trusted publishing (OIDC; no stored token).
+# workflow_dispatch exists only for the dry run: it runs every check, including
+# macOS, and stops before the Release and PyPI.
 on:
   push:
     tags: ["v*"]
@@ -150,6 +152,18 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           (cd dist && sha256sum "$wheel" "$sdist")
 
+      # The verified files themselves travel to the release and pypi jobs, so
+      # the GitHub Release and PyPI carry exactly what was tested here.
+      # actions/upload-artifact v7.0.1
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: dist
+          path: |
+            dist/${{ steps.digests.outputs.wheel }}
+            dist/${{ steps.digests.outputs.sdist }}
+          if-no-files-found: error
+          retention-days: 30
+
   macos:
     name: Verify and build (macOS)
     runs-on: macos-latest
@@ -203,14 +217,27 @@ jobs:
       # astral-sh/setup-uv v10.2.0
       - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7
 
+      # actions/download-artifact v8.0.1
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: dist
+          path: ${{ runner.temp }}/verified
+
       # hatchling builds are reproducible (fixed timestamps, normalised modes):
       # a fresh build of the tag must equal the verified build byte for byte.
+      # The Release carries the verified files (the build job's artifact).
       - name: Rebuild the tag and compare with the verified build
         run: |
           set -euo pipefail
+          verified="$RUNNER_TEMP/verified"
+          (cd "$verified" && echo "$WHEEL_SHA256  $WHEEL" | sha256sum -c - \
+            && echo "$SDIST_SHA256  $SDIST" | sha256sum -c -)
           uv build
-          echo "$WHEEL_SHA256  dist/$WHEEL" | sha256sum -c -
-          echo "$SDIST_SHA256  dist/$SDIST" | sha256sum -c -
+          cmp "dist/$WHEEL" "$verified/$WHEEL"
+          cmp "dist/$SDIST" "$verified/$SDIST"
+          rm -rf dist
+          mkdir dist
+          cp "$verified/$WHEEL" "$verified/$SDIST" dist/
           (cd dist && sha256sum "$WHEEL" "$SDIST") > "$RUNNER_TEMP/SHA256SUMS"
           cp "$RUNNER_TEMP/SHA256SUMS" dist/SHA256SUMS
 
@@ -233,6 +260,7 @@ jobs:
             echo "Built and tested on Linux and macOS; a fresh build of the tag equals the"
             echo "verified build byte for byte; the wheel downloaded from this Release passed"
             echo "the payload check and the install-and-load smoke before it was published."
+            echo "The same two files are on PyPI: \`pip install scshafe-qt==$VERSION\`."
             echo
             awk -v v="$VERSION" '$0 ~ "^## " v " " {on=1; next} on && /^## / {exit} on {print}' CHANGELOG.md
           } > "$notes"
@@ -261,3 +289,77 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --draft=false --latest
+
+  # Trusted publishing: PyPI accepts this job's OIDC token for the publisher
+  # scshafe/scshafe-qt, workflow publish.yml, environment pypi (restricted to
+  # v* tags). It runs only after the Release is published and uploads the
+  # build job's files, so PyPI and the Release are byte-identical. A failure
+  # here leaves the Release in place: re-run this job (skip-existing makes the
+  # re-run idempotent; the digest check below still proves the files).
+  pypi:
+    name: Publish to PyPI
+    needs: [build, release]
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/scshafe-qt/${{ needs.build.outputs.version }}/
+    permissions:
+      contents: read # gh release download (the Release's SHA256SUMS)
+      id-token: write # the OIDC token for PyPI and its attestations
+    env:
+      TAG: ${{ needs.build.outputs.tag }}
+      VERSION: ${{ needs.build.outputs.version }}
+      WHEEL: ${{ needs.build.outputs.wheel }}
+      WHEEL_SHA256: ${{ needs.build.outputs.wheel_sha256 }}
+      SDIST: ${{ needs.build.outputs.sdist }}
+      SDIST_SHA256: ${{ needs.build.outputs.sdist_sha256 }}
+    steps:
+      # actions/download-artifact v8.0.1
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: dist
+          path: dist
+
+      - name: Check the files against the build digests and the Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          [[ "$(ls dist | sort)" == "$(printf '%s\n' "$SDIST" "$WHEEL" | sort)" ]] \
+            || { echo "::error::dist/ holds $(ls dist), expected $WHEEL and $SDIST"; exit 1; }
+          (cd dist && echo "$WHEEL_SHA256  $WHEEL" | sha256sum -c - \
+            && echo "$SDIST_SHA256  $SDIST" | sha256sum -c -)
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" \
+            --pattern SHA256SUMS --dir "$RUNNER_TEMP/release"
+          (cd dist && sha256sum -c "$RUNNER_TEMP/release/SHA256SUMS")
+
+      # pypa/gh-action-pypi-publish v1.14.2 (PEP 740 attestations on by default)
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33
+        with:
+          packages-dir: dist
+          skip-existing: true
+
+      - name: PyPI serves the verified files
+        run: |
+          set -euo pipefail
+          for _ in 1 2 3 4 5 6; do
+            if curl -fsSL "https://pypi.org/pypi/scshafe-qt/$VERSION/json" -o "$RUNNER_TEMP/pypi.json"; then
+              if python3 - <<'EOF'
+          import json, os, sys
+          want = {os.environ["WHEEL"]: os.environ["WHEEL_SHA256"], os.environ["SDIST"]: os.environ["SDIST_SHA256"]}
+          urls = json.load(open(os.path.join(os.environ["RUNNER_TEMP"], "pypi.json")))["urls"]
+          have = {u["filename"]: u["digests"]["sha256"] for u in urls}
+          print("PyPI:", have)
+          sys.exit(0 if have == want else 1)
+          EOF
+              then
+                echo "PyPI scshafe-qt $VERSION serves exactly the Release's files."
+                exit 0
+              fi
+            fi
+            sleep 20
+          done
+          echo "::error::PyPI scshafe-qt $VERSION does not serve exactly $WHEEL and $SDIST with the verified digests"
+          exit 1

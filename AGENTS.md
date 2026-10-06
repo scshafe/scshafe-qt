@@ -2,8 +2,8 @@
 
 A managed library (Python variant of the SCSHAFE library standard,
 `scshafe-library` v1, to be amended with that variant): the QML module
-`Scshafe.Ui` for PySide6 apps, released as wheels on GitHub Releases. It deploys
-nothing. Read `README.md` before meaningful changes.
+`Scshafe.Ui` for PySide6 apps, released as wheels on GitHub Releases and PyPI
+(the same files). It deploys nothing. Read `README.md` before meaningful changes.
 
 ## Invariants
 
@@ -59,8 +59,11 @@ uv build && uv run --frozen python tools/check_dist.py --smoke
   and adds `## <x.y.z> — <date>` to `CHANGELOG.md`.
 - After `ci.yml` is green on `main`, the owning agent pushes the annotated tag
   `v<x.y.z>` on that commit; `publish.yml` (Q2) is the only publisher (GitHub
-  Release with wheel, sdist and sha256s, then install-back from the Release URL).
-- Never upload wheels by hand, never reuse, move or delete a tag or a Release.
+  Release with wheel, sdist and sha256s, then install-back from the Release URL,
+  then the same files to PyPI by trusted publishing from the `pypi` environment,
+  `v*` tags only). No PyPI token exists anywhere.
+- Never upload wheels by hand (to a Release or to PyPI), never reuse, move or
+  delete a tag, a Release or a PyPI file; yank on PyPI only with the owner.
   A bad release is superseded by a higher patch with a changelog note.
 
 <!-- scshafe-dev:begin landing -->

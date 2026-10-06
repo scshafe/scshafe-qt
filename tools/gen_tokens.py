@@ -16,7 +16,7 @@ The registry is located with --from DIR, else $SCSHAFE_UI_DIR, else a sibling
 checkout ../scshafe-ui. DIR is either a source checkout of scshafe-ui or an
 installed package (node_modules/@scshafe/ui). --check compares the snapshot with
 the registry when one is found and says it skipped that comparison otherwise
-(GitHub-hosted CI cannot read the private package); --require-source turns the
+(CI has no scshafe-ui checkout); --require-source turns the
 skip into a failure.
 """
 

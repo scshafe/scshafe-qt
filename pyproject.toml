@@ -1,6 +1,6 @@
 [project]
 name = "scshafe-qt"
-version = "0.1.1"
+version = "0.1.2"
 description = "The SCSHAFE native component library: the Scshafe.Ui QML module (Qt Quick) for PySide6 apps, themed from the @scshafe/ui token registry."
 readme = "README.md"
 license = "MIT"
@@ -10,11 +10,20 @@ authors = [{ name = "scshafe-qt contributors" }]
 # the lower bound is the oldest Python the library is tested on
 # (.python-version pins 3.14).
 requires-python = ">=3.14,<3.15"
+keywords = ["qt", "qml", "pyside6", "qt-quick", "components", "design-tokens", "ui"]
+# The license is the SPDX expression above (PEP 639); no License :: classifier.
 classifiers = [
-    "Private :: Do Not Upload",
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Environment :: X11 Applications :: Qt",
+    "Environment :: MacOS X",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.14",
-    "Framework :: Pytest",
-    "License :: OSI Approved :: MIT License",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: User Interfaces",
 ]
 # Range policy: the library accepts the Qt minor it is built and tested on
 # (6.11.x, ">=<tested patch>,<next minor>"); an app pins one exact version in
@@ -25,8 +34,12 @@ classifiers = [
 dependencies = ["PySide6-Essentials>=6.11.2,<6.12"]
 
 [project.urls]
+Homepage = "https://github.com/scshafe/scshafe-qt"
+Documentation = "https://github.com/scshafe/scshafe-qt#readme"
 Repository = "https://github.com/scshafe/scshafe-qt"
+Issues = "https://github.com/scshafe/scshafe-qt/issues"
 Changelog = "https://github.com/scshafe/scshafe-qt/blob/main/CHANGELOG.md"
+Releases = "https://github.com/scshafe/scshafe-qt/releases"
 
 [dependency-groups]
 dev = ["pytest==9.1.1", "pytest-qt==4.5.0"]

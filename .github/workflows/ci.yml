@@ -1,8 +1,9 @@
 name: CI
 
 # Linux on every push and pull request. macOS (GitHub-hosted, Apple Silicon)
-# only by hand and weekly: hosted macOS minutes bill at 10x on a private
-# repository. Release tags run publish.yml, which verifies on both.
+# only by hand and weekly, to keep pushes fast (the policy dates from when the
+# repository was private and macOS minutes billed at 10x). Release tags run
+# publish.yml, which verifies on both.
 on:
   push:
     branches: ["**"]
