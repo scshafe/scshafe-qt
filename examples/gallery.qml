@@ -20,7 +20,8 @@ Window {
     readonly property var pages: [
         { section: "Gallery", text: "Mail", iconName: "mail", page: "mail" },
         { section: "Gallery", text: "Typography", iconName: "text", page: "type" },
-        { section: "Gallery", text: "Controls", iconName: "sliders", page: "controls" }
+        { section: "Gallery", text: "Controls", iconName: "sliders", page: "controls" },
+        { section: "Gallery", text: "Table", iconName: "table", page: "table" }
     ]
     property string page: "mail"
     function showPage(id) {
@@ -36,6 +37,35 @@ Window {
     }
     function showType() { showPage("type") }
     function showControls() { showPage("controls") }
+    function showTable() {
+        showPage("table")
+        takesTable.sortBy("score", Qt.DescendingOrder)
+        takesTable.select([takesTable._order[1], takesTable._order[2], takesTable._order[3]])
+        takesTable.setCurrentRow(takesTable._order[3])
+        takesTable.forceActiveFocus(Qt.TabFocusReason)  // the rows, as if tabbed to: the ring shows
+    }
+    // 10,000 made-up takes for the Table page.
+    function makeTakes(count) {
+        const speakers = ["Ada", "Grace", "Alan", "Edsger", "Barbara", "Ken"]
+        const scripts = ["Rainbow passage", "Grandfather passage", "Digits 0-9", "Free speech", "Sentences 1-10"]
+        const out = []
+        let seed = 12345
+        const rand = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648
+        for (let i = 0; i < count; ++i) {
+            out.push({
+                id: i,
+                take: "take-" + String(i + 1).padStart(5, "0"),
+                speaker: speakers[Math.floor(rand() * speakers.length)],
+                script: scripts[Math.floor(rand() * scripts.length)],
+                seconds: 3 + rand() * 57,
+                snr: Math.round((8 + rand() * 32) * 10) / 10,
+                score: Math.round(rand() * 1000) / 1000,
+                recorded: "2026-" + String(1 + Math.floor(rand() * 9)).padStart(2, "0") + "-"
+                          + String(1 + Math.floor(rand() * 28)).padStart(2, "0")
+            })
+        }
+        return out
+    }
     function openDialog() { ruleDialog.open() }
     function openSheet() { senderSheet.open() }
     function openShortcuts() { shortcutOverlay.open() }
@@ -474,6 +504,56 @@ Window {
                                 }
                             }
                         }
+                    }
+                }
+
+                ColumnLayout {
+                    objectName: "tablePage"
+                    spacing: 0
+                    readonly property var takes: root.makeTakes(10000)
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.margins: SuiTheme.spaceMd
+                        spacing: SuiTheme.spaceMd
+                        SuiText { text: "Takes"; variant: "heading" }
+                        SuiText {
+                            objectName: "tableStatus"
+                            Layout.fillWidth: true
+                            variant: "caption"
+                            tabular: true
+                            text: takesTable.rowCount.toLocaleString() + " takes, " + takesTable.selectedRows.length
+                                  + " selected" + (takesTable.sortKey !== "" ? ", sorted by " + takesTable.sortKey : "")
+                        }
+                        SuiSelect {
+                            label: "Selection"
+                            model: ["single", "multiple", "none"]
+                            currentIndex: 1
+                            onActivated: takesTable.selectionMode = currentText
+                        }
+                        SuiButton { text: "Reset widths"; variant: "secondary"; onClicked: takesTable.columnWidths = ({}) }
+                    }
+                    SuiTable {
+                        id: takesTable
+                        objectName: "takesTable"
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        label: "Takes"
+                        rows: parent.takes
+                        rowKey: "id"
+                        selectionMode: "multiple"
+                        columns: [
+                            { key: "take", title: "Take", width: 110 },
+                            { key: "speaker", title: "Speaker", width: 100 },
+                            { key: "script", title: "Script", width: 170 },
+                            { key: "seconds", title: "Duration", width: 90, align: "right", format: (v) => v.toFixed(1) + " s" },
+                            { key: "snr", title: "SNR", width: 80, align: "right", format: (v) => v.toFixed(1) + " dB",
+                              tone: (v) => v < 12 ? "warn" : "" },
+                            { key: "score", title: "Score", width: 80, align: "right", format: (v) => v.toFixed(3),
+                              tone: (v) => v < 0.2 ? "danger" : v > 0.9 ? "ok" : "" },
+                            { key: "recorded", title: "Recorded", width: 110 }
+                        ]
+                        onActivated: (row) => toasts.show("Opened " + rows[row].take, { tone: "info" })
                     }
                 }
             }
