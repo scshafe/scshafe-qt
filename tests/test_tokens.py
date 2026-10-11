@@ -346,3 +346,15 @@ def test_monospace_family(theme):
     candidates = plain(theme.property("monoCandidates"))
     family = theme.property("monoFamily")
     assert family in candidates or family == gen_tokens.MONO_FALLBACK
+
+
+@pytest.mark.parametrize("theme_name", ["light", "dark"])
+def test_accent_foreground_contrast(theme, theme_name):
+    """Marks on an accent fill (check marks, radio dots, switch thumbs) reach 4.5:1 on the accent
+    and on its hover colour."""
+    theme.setProperty("mode", theme_name)
+    page = resolve("--sui-panel" if theme_name == "light" else "--sui-bg", theme_name)
+    assert_color(theme.property("accentForeground"), page, "accentForeground")
+    for fill in ("--sui-accent", "--sui-accent-hover"):
+        ratio = contrast(page, resolve(fill, theme_name))
+        assert ratio >= TEXT_MIN, f"{theme_name}: accentForeground on {fill} = {ratio:.2f}:1"
