@@ -7,6 +7,27 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.5.0 — 2026-10-11
+
+Progress. Additive; no existing API changes.
+
+- **`SuiProgressBar`**: determinate progress (Qt's ProgressBar: `from`, `to`,
+  `value`, `position`) with `label` above the bar and `valueText` beside it
+  (the percentage by default; tabular digits), `showLabel` / `showValue`,
+  and `tone` (`accent`, `ok`, `warn`, `danger`). `cancellable` adds a cancel
+  button beside the bar, a Tab stop named `cancelLabel` ("Cancel <label>"),
+  that emits `cancelRequested()`. The fill moves on `SuiTheme.duration`
+  (instant under reduced motion). Accessible: ProgressBar named by `label`,
+  described by `valueText`, with Qt's value interface. `indeterminate` is
+  not drawn.
+- `SuiTheme` NATIVE-ONLY: `progressHeight`.
+- Gallery: a Progress section on the Controls page, with an export you can
+  start and cancel.
+- Tests: `tests/test_progress.py` (range and fill, motion and reduced
+  motion, value text, tones in both themes, cancel by keyboard, Tab order,
+  accessibility), the shared component contract, a QML TestCase, the
+  plain-text payload and the wheel smoke scene (28 components).
+
 ## 0.4.0 — 2026-10-11
 
 Form controls. Additive; no existing API changes.
