@@ -81,6 +81,10 @@ def _scene(port: int) -> str:
                 columns: [{{ key: "a", title: root.p }}, {{ key: "b", title: "b", format: (v) => root.p }}]
                 rows: [{{ a: root.p, b: 1 }}] }}
             SuiTable {{ width: 300; height: 70; label: "empty"; columns: [{{ key: "a" }}]; placeholderText: root.p }}
+            SuiChart {{ width: 300; height: 160; label: root.p; xLabel: root.p; yLabel: root.p
+                series: [{{ name: root.p, y: [1, 2] }}, {{ name: root.p, kind: "area", y: [2, 1] }}]
+                markers: [{{ axis: "y", value: 1.5, label: root.p }}] }}
+            SuiHistogram {{ width: 300; height: 160; label: root.p; xLabel: root.p; values: [1, 2, 2, 3] }}
             SuiChip {{ text: root.p; tone: "bucket1" }}
             SuiBadge {{ text: root.p }}
             SuiKbd {{ text: root.p }}

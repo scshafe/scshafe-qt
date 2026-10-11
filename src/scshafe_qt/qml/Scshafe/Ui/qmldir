@@ -5,9 +5,11 @@ SuiBadge 1.0 SuiBadge.qml
 SuiBanner 1.0 SuiBanner.qml
 SuiButton 1.0 SuiButton.qml
 SuiCheckBox 1.0 SuiCheckBox.qml
+SuiChart 1.0 SuiChart.qml
 SuiChip 1.0 SuiChip.qml
 SuiDialog 1.0 SuiDialog.qml
 SuiEmptyState 1.0 SuiEmptyState.qml
+SuiHistogram 1.0 SuiHistogram.qml
 SuiIcon 1.0 SuiIcon.qml
 SuiIconButton 1.0 SuiIconButton.qml
 SuiKbd 1.0 SuiKbd.qml

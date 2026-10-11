@@ -423,6 +423,10 @@ _NATIVE_HEAD = """
     readonly property int tableMinColumnWidth: 48
     readonly property int tableMaxColumnWidth: 960
     readonly property int scrollBarSize: 10       // hit area; the thumb is drawn thinner until hovered
+    readonly property real chartLineWidth: 2      // line and area series
+    readonly property real chartFillAlpha: 0.18   // area and band fills: the series colour at this
+    readonly property int chartPointSize: 6       // scatter points (diameter)
+    readonly property int chartTickLength: 4
     // Marks on an accent fill (check marks, radio dots, switch thumbs): the panel
     // (white) on the light theme's dark accent, the page background on the dark
     // theme's light accent; >= 4.5:1 on --sui-accent in both (tests/test_tokens.py).

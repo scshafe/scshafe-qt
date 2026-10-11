@@ -61,6 +61,17 @@ SPECS: dict[str, Spec] = {
     ),
     "SuiChip": Spec('SuiChip { objectName: "subject"; x: 40; y: 40; text: "Receipts"; tone: "bucket1"; dot: true }',
                     R.StaticText, "Receipts"),
+    "SuiChart": Spec(
+        'SuiChart { objectName: "subject"; x: 20; y: 20; width: 420; height: 240; label: "Pitch"; xLabel: "Time (s)";'
+        ' series: [{ kind: "band", name: "Range", lower: [90, 140, 115], upper: [110, 160, 135] },'
+        ' { name: "F0", y: [100, 150, 125] }] }',
+        R.Chart, "Pitch", True,
+    ),
+    "SuiHistogram": Spec(
+        'SuiHistogram { objectName: "subject"; x: 20; y: 20; width: 420; height: 240; label: "Durations";'
+        ' values: [1, 2, 2, 3, 3, 3, 4, 4, 5] }',
+        R.Chart, "Durations", True,
+    ),
     "SuiCheckBox": Spec(
         'SuiCheckBox { objectName: "subject"; x: 40; y: 40; text: "Normalise"; description: "To -23 LUFS"; checked: true }',
         R.CheckBox, "Normalise", True, "subject",
