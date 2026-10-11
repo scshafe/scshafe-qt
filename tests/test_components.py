@@ -92,6 +92,12 @@ SPECS: dict[str, Spec] = {
         ' pinnedLevel: -12; pinnedLabel: "Target"; pinEditable: true }',
         R.ProgressBar, "Input level", True, "pin",
     ),
+    "SuiTable": Spec(
+        'SuiTable { objectName: "subject"; x: 20; y: 20; width: 440; height: 200; label: "Takes";'
+        ' columns: [{ key: "name", title: "Take" }, { key: "score", title: "Score", align: "right" }];'
+        ' rows: [{ name: "take-1", score: 0.9 }, { name: "take-2", score: 0.4 }, { name: "take-3", score: 0.7 }] }',
+        R.Table, "Takes", True, "body",
+    ),
     "SuiText": Spec('SuiText { objectName: "subject"; x: 40; y: 40; text: "Recordings"; variant: "title" }',
                     R.Heading, "Recordings"),
     "SuiBadge": Spec('SuiBadge { objectName: "subject"; x: 40; y: 40; count: 120 }', R.StaticText, "99+"),

@@ -86,6 +86,8 @@ Window {
             SuiSlider { label: "Gain"; Component.onCompleted: built++ }
             SuiProgressBar { label: "Export"; value: 0.5; cancellable: true; Component.onCompleted: built++ }
             SuiLevelMeter { label: "Input"; level: -18; pinnedLevel: -12; Component.onCompleted: built++ }
+            SuiTable { width: 300; height: 100; label: "Takes"; columns: [{ key: "name", title: "Take" }]
+                       rows: [{ name: "take-1" }]; Component.onCompleted: built++ }
             SuiIconButton { label: "Close"; icon.name: "close"; Component.onCompleted: built++ }
             SuiTextField { label: "Note"; Component.onCompleted: built++ }
             SuiSearchField { Component.onCompleted: built++ }
@@ -109,7 +111,7 @@ Window {
     SuiShortcutOverlay { shortcuts: [{ keys: ["?"], description: "Help" }]; Component.onCompleted: built++ }
 }
 """
-SMOKE_COMPONENTS = 29  # public components in qmldir, each built once above
+SMOKE_COMPONENTS = 30  # public components in qmldir, each built once above
 
 
 def one(dist: Path, pattern: str) -> Path:

@@ -24,11 +24,13 @@ SuiSidebarItem 1.0 SuiSidebarItem.qml
 SuiSidebarList 1.0 SuiSidebarList.qml
 SuiSlider 1.0 SuiSlider.qml
 SuiSwitch 1.0 SuiSwitch.qml
+SuiTable 1.0 SuiTable.qml
 SuiText 1.0 SuiText.qml
 SuiTextField 1.0 SuiTextField.qml
 SuiToast 1.0 SuiToast.qml
 SuiToastHost 1.0 SuiToastHost.qml
 SuiTrail 1.0 SuiTrail.qml
 internal SuiFocusRing SuiFocusRing.qml
+internal SuiScrollBar SuiScrollBar.qml
 internal SuiSplitHandle SuiSplitHandle.qml
 internal SuiToggleLabel SuiToggleLabel.qml
