@@ -389,6 +389,91 @@ Window {
                                 }
                             }
                         }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.topMargin: SuiTheme.spaceSm
+                            spacing: SuiTheme.spaceMd
+                            SuiText { text: "Level meter"; variant: "title"; Layout.fillWidth: true }
+                            SuiSwitch {
+                                id: simulateInput
+                                objectName: "simulateInput"
+                                text: "Simulate input"
+                            }
+                            SuiButton {
+                                text: "Reset peaks"
+                                variant: "secondary"
+                                onClicked: { inputMeter.reset(); gateMeter.reset(); leftMeter.reset(); rightMeter.reset() }
+                            }
+                        }
+                        RowLayout {
+                            objectName: "meterDemo"
+                            Layout.fillWidth: true
+                            spacing: SuiTheme.spaceXl
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignTop
+                                spacing: SuiTheme.spaceMd
+                                SuiText { text: "Input"; variant: "label" }
+                                SuiLevelMeter {
+                                    id: inputMeter
+                                    objectName: "inputMeter"
+                                    Layout.fillWidth: true
+                                    label: "Input level"
+                                    level: -18.4
+                                    pinnedLevel: -12
+                                    pinnedLabel: "Target level"
+                                }
+                                SuiText { text: "Noise gate"; variant: "label" }
+                                SuiLevelMeter {
+                                    id: gateMeter
+                                    objectName: "gateMeter"
+                                    Layout.fillWidth: true
+                                    label: "Gate input"
+                                    level: inputMeter.level - 6
+                                    pinnedLevel: -42
+                                    pinnedLabel: "Gate threshold"
+                                    pinEditable: true
+                                    onPinMoved: (level) => gateText.text = "Gate opens at " + level.toFixed(0) + " dB"
+                                }
+                                SuiText { id: gateText; variant: "caption"; text: "Drag the knob, or Tab to it and use the arrows." }
+                            }
+                            Row {
+                                objectName: "stereoMeters"
+                                Layout.alignment: Qt.AlignTop
+                                spacing: SuiTheme.spaceSm
+                                SuiLevelMeter {
+                                    id: leftMeter
+                                    height: 180
+                                    orientation: Qt.Vertical
+                                    label: "Left"
+                                    showValue: false
+                                    level: inputMeter.level + 1.5
+                                }
+                                SuiLevelMeter {
+                                    id: rightMeter
+                                    height: 180
+                                    orientation: Qt.Vertical
+                                    label: "Right"
+                                    showValue: false
+                                    level: inputMeter.level - 2
+                                }
+                            }
+                            // A made-up voice: a slow swell with syllable bursts and an occasional clip.
+                            Timer {
+                                property real t: 0
+                                interval: 50
+                                repeat: true
+                                running: simulateInput.checked
+                                onTriggered: {
+                                    t += 0.05
+                                    const swell = -24 + 10 * Math.sin(t * 0.7)
+                                    const burst = 9 * Math.max(0, Math.sin(t * 9)) * Math.max(0, Math.sin(t * 1.3))
+                                    inputMeter.level = Math.min(0, swell + burst + 2 * Math.random())
+                                }
+                            }
+                        }
                     }
                 }
             }
