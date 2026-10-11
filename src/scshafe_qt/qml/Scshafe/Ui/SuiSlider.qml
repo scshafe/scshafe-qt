@@ -31,7 +31,7 @@ T.Slider {
                                                  valueMetrics.advanceWidth(_format(to))))
 
     readonly property bool _hot: (hovered || visualFocus || pressed) && enabled
-    readonly property real _inset: SuiTheme.sliderHandleSize / 2
+    readonly property real _inset: SuiTheme.sliderHandleSize / 2  // a handle centre's travel ends
     readonly property real _keyStep: stepSize > 0 ? stepSize : Math.abs(to - from) / 100
     readonly property real _valueWidth: showValue ? valueWidth + SuiTheme.spaceSm : 0
 
@@ -50,12 +50,15 @@ T.Slider {
                             implicitHandleWidth + leftPadding + rightPadding)
     implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset,
                              implicitHandleHeight + topPadding + bottomPadding)
-    // Half a handle on every side, so the handle stays inside at the ends. (Side
-    // paddings must not read `padding`: T.Control then reports a binding loop.)
-    leftPadding: _inset
-    topPadding: _inset
-    rightPadding: horizontal ? _inset + _valueWidth : _inset
-    bottomPadding: horizontal ? _inset : _inset + (showValue ? valueLabel.implicitHeight + SuiTheme.spaceXs : 0)
+    // The handle travels inside the available area (Qt maps pointer positions so:
+    // its centre runs from half a handle in to half a handle from the end), and
+    // the track runs between those two centres. The value text takes the room
+    // after the track. (Side paddings must not read `padding`: T.Control then
+    // reports a binding loop.)
+    leftPadding: 0
+    topPadding: 0
+    rightPadding: horizontal ? _valueWidth : 0
+    bottomPadding: horizontal ? 0 : (showValue ? valueLabel.implicitHeight + SuiTheme.spaceXs : 0)
     focusPolicy: Qt.StrongFocus
     hoverEnabled: true
     opacity: enabled ? 1 : SuiTheme.disabledOpacity
@@ -99,10 +102,10 @@ T.Slider {
 
         Rectangle {
             objectName: "track"
-            x: control.horizontal ? 0 : (parent.width - width) / 2
-            y: control.horizontal ? (parent.height - height) / 2 : 0
-            width: control.horizontal ? parent.width : SuiTheme.sliderTrackHeight
-            height: control.horizontal ? SuiTheme.sliderTrackHeight : parent.height
+            x: control.horizontal ? control._inset : (parent.width - width) / 2
+            y: control.horizontal ? (parent.height - height) / 2 : control._inset
+            width: control.horizontal ? parent.width - 2 * control._inset : SuiTheme.sliderTrackHeight
+            height: control.horizontal ? SuiTheme.sliderTrackHeight : parent.height - 2 * control._inset
             radius: SuiTheme.sliderTrackHeight / 2
             color: SuiTheme.borderStrong
 
@@ -120,10 +123,10 @@ T.Slider {
 
     handle: Rectangle {
         objectName: "handle"
-        x: control.leftPadding + (control.horizontal ? control.visualPosition * control.availableWidth - width / 2
+        x: control.leftPadding + (control.horizontal ? control.visualPosition * (control.availableWidth - width)
                                                      : (control.availableWidth - width) / 2)
         y: control.topPadding + (control.horizontal ? (control.availableHeight - height) / 2
-                                                    : control.visualPosition * control.availableHeight - height / 2)
+                                                    : control.visualPosition * (control.availableHeight - height))
         implicitWidth: SuiTheme.sliderHandleSize
         implicitHeight: SuiTheme.sliderHandleSize
         radius: width / 2
