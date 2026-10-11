@@ -85,6 +85,7 @@ Item {
         }
         SuiSelect { id: select; label: "Input"; model: ["Desk microphone", "Headset", "Line in"] }
         SuiSlider { id: gain; label: "Gain"; from: -24; to: 24; stepSize: 0.5; unit: "dB"; showValue: true }
+        SuiProgressBar { id: progress; width: 300; label: "Exporting"; from: 0; to: 12; value: 3; cancellable: true }
     }
     SuiDialog {
         id: dialog
@@ -102,6 +103,7 @@ Item {
     SignalSpy { id: toggledSpy; target: rate0; signalName: "toggled" }
     SignalSpy { id: activatedSelectSpy; target: select; signalName: "activated" }
     SignalSpy { id: movedSpy; target: gain; signalName: "moved" }
+    SignalSpy { id: cancelSpy; target: progress; signalName: "cancelRequested" }
 
     TestCase {
         name: "SuiComponents"
@@ -111,7 +113,7 @@ Item {
             SuiTheme.mode = "light"
             SuiTheme.reducedMotion = true
             for (const spy of [nextSpy, activatedSpy, sidebarSpy, hookSpy, rejectedSpy, toggledSpy,
-                               activatedSelectSpy, movedSpy])
+                               activatedSelectSpy, movedSpy, cancelSpy])
                 spy.clear()
             root.forceActiveFocus(Qt.OtherFocusReason)
         }
@@ -214,6 +216,22 @@ Item {
             compare(gain.valueText, "24.0 dB")
             compare(movedSpy.count, 3)
             compare(gain.Accessible.role, Accessible.Slider)
+        }
+
+        function test_progress_and_cancel() {
+            const fill = findChild(progress, "fill")
+            compare(fill.width, findChild(progress, "track").width / 4)  // reduced motion: no slide
+            compare(progress.valueText, "25 %")
+            compare(progress.Accessible.role, Accessible.ProgressBar)
+            compare(progress.Accessible.name, "Exporting")
+            const cancel = findChild(progress, "cancelButton")
+            compare(cancel.Accessible.name, "Cancel Exporting")
+            cancel.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Space)
+            compare(cancelSpy.count, 1)
+            progress.tone = "danger"
+            compare(fill.color, SuiTheme.toneRed)
+            progress.tone = "accent"
         }
 
         function test_list_keys_and_hooks() {

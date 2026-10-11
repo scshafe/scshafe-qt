@@ -13,6 +13,7 @@ SuiIconButton 1.0 SuiIconButton.qml
 SuiKbd 1.0 SuiKbd.qml
 SuiList 1.0 SuiList.qml
 SuiListRow 1.0 SuiListRow.qml
+SuiProgressBar 1.0 SuiProgressBar.qml
 SuiRadioButton 1.0 SuiRadioButton.qml
 SuiSearchField 1.0 SuiSearchField.qml
 SuiSelect 1.0 SuiSelect.qml
