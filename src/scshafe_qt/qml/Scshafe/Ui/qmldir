@@ -17,6 +17,7 @@ SuiSheet 1.0 SuiSheet.qml
 SuiShortcutOverlay 1.0 SuiShortcutOverlay.qml
 SuiSidebarItem 1.0 SuiSidebarItem.qml
 SuiSidebarList 1.0 SuiSidebarList.qml
+SuiText 1.0 SuiText.qml
 SuiTextField 1.0 SuiTextField.qml
 SuiToast 1.0 SuiToast.qml
 SuiToastHost 1.0 SuiToastHost.qml

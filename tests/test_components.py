@@ -61,6 +61,8 @@ SPECS: dict[str, Spec] = {
     ),
     "SuiChip": Spec('SuiChip { objectName: "subject"; x: 40; y: 40; text: "Receipts"; tone: "bucket1"; dot: true }',
                     R.StaticText, "Receipts"),
+    "SuiText": Spec('SuiText { objectName: "subject"; x: 40; y: 40; text: "Recordings"; variant: "title" }',
+                    R.Heading, "Recordings"),
     "SuiBadge": Spec('SuiBadge { objectName: "subject"; x: 40; y: 40; count: 120 }', R.StaticText, "99+"),
     "SuiKbd": Spec('SuiKbd { objectName: "subject"; x: 40; y: 40; text: "Ctrl" }', R.StaticText, "Ctrl"),
     "SuiIcon": Spec('SuiIcon { objectName: "subject"; x: 40; y: 40; name: "inbox"; label: "Inbox"; size: 32 }',
