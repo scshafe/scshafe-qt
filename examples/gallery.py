@@ -5,7 +5,7 @@
     uv run python examples/gallery.py --screenshot DIR   # render PNGs offscreen and exit
 
 The sidebar's first section switches pages: the mail sample, typography,
-controls and a table of 10,000 rows.
+controls, a table of 10,000 rows and charts.
 Keys in the window: Tab / Shift+Tab move focus; j / k move the message
 selection; 1-8 "sort" (a toast); / searches; ? lists the shortcuts.
 """
@@ -21,7 +21,7 @@ HERE = Path(__file__).resolve().parent
 GALLERY_QML = HERE / "gallery.qml"
 # The views --screenshot renders: name -> gallery.qml function to call first.
 VIEWS = {"main": "showSample", "type": "showType", "controls": "showControls", "table": "showTable",
-         "dialog": "openDialog", "sheet": "openSheet", "shortcuts": "openShortcuts"}
+         "charts": "showCharts", "dialog": "openDialog", "sheet": "openSheet", "shortcuts": "openShortcuts"}
 
 
 def load(engine, theme: str = "system", reduced_motion: bool = False):
