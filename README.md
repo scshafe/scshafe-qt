@@ -13,8 +13,8 @@ type and motion.
 - Python **3.12, 3.13 and 3.14** (`requires-python >=3.12`, from 0.2.0; 0.1.x needed
   3.14). CI tests all three. The PySide6 6.11 wheels are abi3 for CPython 3.10+ and
   declare `requires-python <3.15`, so a newer Python waits for a PySide6 that supports it.
-- Status: **0.6.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
-  (typography), the form controls, `SuiProgressBar` and `SuiLevelMeter` below.
+- Status: **0.7.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
+  (typography), the form controls, `SuiProgressBar`, `SuiLevelMeter` and `SuiTable` below.
 - **Untrusted text is safe to pass:** every component renders caller strings as plain text
   (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
   0.1.0 rendered HTML-looking strings as rich text (fixed in 0.1.1; upgrade).
@@ -29,7 +29,8 @@ uv add scshafe-qt            # or: pip install scshafe-qt
 ```
 
 Minor releases add components and keep the existing API (0.3.0: `SuiText`; 0.4.0: form
-controls; 0.5.0: `SuiProgressBar`; 0.6.0: `SuiLevelMeter`); an app
+controls; 0.5.0: `SuiProgressBar`; 0.6.0: `SuiLevelMeter`;
+0.7.0: `SuiTable`); an app
 pinned below the new minor (`scshafe-qt>=0.2,<0.3`) stays where it is until it widens
 the range. 0.2.0 changed only the supported Python range.
 
@@ -40,12 +41,12 @@ PEP 740 attestations from trusted publishing. As a fallback, install straight fr
 Release; the repository is public, so the download URLs need no token:
 
 ```sh
-pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.6.0/scshafe_qt-0.6.0-py3-none-any.whl
+pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.7.0/scshafe_qt-0.7.0-py3-none-any.whl
 # or, in a uv project, a pinned URL source (uv.lock records its sha256):
-uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.6.0/scshafe_qt-0.6.0-py3-none-any.whl"
+uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.7.0/scshafe_qt-0.7.0-py3-none-any.whl"
 ```
 
-To check the files yourself: `gh release download v0.6.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
+To check the files yourself: `gh release download v0.7.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
 then `sha256sum -c --ignore-missing SHA256SUMS`.
 
 The library accepts the Qt minor it is tested on (`PySide6-Essentials>=6.11.2,<6.12`);
@@ -101,6 +102,7 @@ Imports are versionless (`import Scshafe.Ui`).
 | `SuiSlider` | number in a range (`from`, `to`, `stepSize`), horizontal or vertical; `unit`, `decimals`, `showValue` draws `valueText` | arrows one step (1 % without `stepSize`), PgUp/PgDn ten, Home/End the ends; `moved()` for every user change; Slider named by `label`, value interface, described by `valueText` |
 | `SuiLevelMeter` | live level (`level`, `from`..`to`, default -60..0 dB) in ok / warn / danger zones (`warnLevel`, `dangerLevel`), peak hold (`peak`), a latched clip lamp (`clipped`, `reset()`), a scale and `valueText`; a pinned-level marker (`pinnedLevel`, `pinnedLabel`), user-movable with `pinEditable` (`pinMoved(level)`); horizontal or vertical | ProgressBar named by `label` with the level as its value, described by level, peak, pin and clipping; an editable pin is a Slider Tab stop: arrows by `pinStep`, PgUp/PgDn ten, Home/End, drag or click |
 | `SuiProgressBar` | determinate progress (`from`, `to`, `value`): `label` above, `valueText` beside (a percentage by default), `tone` `accent` / `ok` / `warn` / `danger`; `cancellable` adds a cancel button emitting `cancelRequested()` | ProgressBar named by `label`, described by `valueText`, Qt's value interface; the cancel button is a Tab stop named `cancelLabel` ("Cancel <label>") |
+| `SuiTable` | sortable, virtualised data table (`columns`, `rows`: a JS array or a Python list of dicts; 10,000 rows sort in ~20 ms and scroll at ~3 ms a frame); resizable columns (`columnWidths`, `columnResized`), row selection (`selectionMode` single / multiple / none, `selectedRows`, `currentRow`, `rowKey` keeps it across new rows), `format` / `tone` per column | Table named by `label`; the header is one Tab stop (←/→ between ColumnHeaders, Enter/Space sort, Ctrl+←/→ resize), the body another (↑/↓ PgUp/PgDn Home/End, Shift extends, Ctrl moves without selecting, Space toggles, Ctrl+A, Enter / double-click `activated(row)`); rows are ListItems named "Title: value, …" |
 | `SuiText` | text in a type style: `variant` `display` / `title` / `heading` / `subheading` / `section` / `label` / `body` / `caption` / `small` / `code`; `tone` overrides the colour; `tabular` digits | heading variants are Headings, the rest StaticText, named by the text; plain text |
 | `SuiIcon`, `SuiKbd` | built-in vector icons (`SuiIcon.names`) or a tinted image; a keyboard-key badge | icons are decorative unless given a `label` |
 
@@ -148,7 +150,8 @@ uv run python examples/gallery.py --theme dark --reduced-motion
 uv run python examples/gallery.py --screenshot DIR      # PNGs of every view x two themes
 ```
 
-The sidebar's first section switches pages: the mail sample, typography and controls.
+The sidebar's first section switches pages: the mail sample, typography, controls and a
+table of 10,000 rows.
 In the window: Tab / Shift+Tab, `j` / `k`, `1`–`8` (a toast), `/`, `?`.
 
 ### Typography
@@ -261,6 +264,46 @@ SuiLevelMeter { label: "Left"; orientation: Qt.Vertical; height: 180; level: lef
   and `pinnedLevel` follows; write it back from the handler.
 - `showScale` (tick labels every `scaleStep`, or the smallest step whose labels do not
   collide), `showValue` (`valueText`, `decimals`, `unit`), `showClip`, `peakHold`.
+
+### Table
+
+```qml
+SuiTable {
+    label: "Takes"
+    columns: [
+        { key: "name", title: "Take", width: 220 },
+        { key: "speaker", title: "Speaker" },
+        { key: "seconds", title: "Duration", width: 90, align: "right", format: (v) => v.toFixed(1) + " s" },
+        { key: "score", title: "Score", width: 80, align: "right", tone: (v) => v < 0.5 ? "danger" : "" }
+    ]
+    rows: takes                      // a JS array of objects, or a Python list of dicts
+    rowKey: "id"                     // keeps selection and current row when rows are replaced
+    selectionMode: "multiple"
+    onActivated: (row) => openTake(rows[row])
+}
+```
+
+- Rows are plain objects; a column shows `row[key]`, through `format(value, row)` when
+  given and in the colour of `tone(value, row)` (a `SuiText` tone) when given. Column
+  fields: `key`, `title`, `width` (`SuiTheme.tableColumnWidth`), `minWidth` / `maxWidth`
+  (`tableMinColumnWidth` / `tableMaxColumnWidth`), `align` (`right` cells use tabular
+  digits), `sortable`, `resizable`. The last column fills the view (`fillLastColumn`).
+- Every row number in the API (`currentRow`, `selectedRows`, `activated(row)`,
+  `select([...])`, `setCurrentRow`, `positionViewAtRow`, `cellText(row, key)`) is an
+  index into `rows`, whatever the sort.
+- Sorting (`sortKey`, `sortOrder`, `sortBy(key[, order])`) runs in JS over an index
+  permutation: numbers as numbers, other values as case-insensitive text, empty values
+  last, ties in `rows` order. Qt 6.10's `SortFilterProxyModel` takes 1–1.6 s per sort
+  over a Python model of 10,000 rows (every comparison calls Python), and does not
+  accept JS arrays; the JS sort takes about 20 ms.
+- Only the rows near the view exist (a `ListView` with `reuseItems`): 44 delegates for
+  10,000 rows in a 1000 x 700 window; replace `rows` to update (10,000 dicts convert in
+  about 80 ms).
+- `columnWidths` (`{ key: width }`) is the user's sizing: bind it to settings to restore
+  it, and save on `columnResized(key, width)`; `resetColumnWidth(key)` (double-click a
+  header edge) returns to the column's `width`.
+- Scroll bars (internal `SuiScrollBar`) show while the content overflows; Left/Right
+  on the body scroll sideways and the header follows.
 
 ### Theme and motion
 
