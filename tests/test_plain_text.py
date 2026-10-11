@@ -76,6 +76,7 @@ def _scene(port: int) -> str:
             SuiSelect {{ id: select; label: "x"; model: [root.p, root.p] }}
             SuiSlider {{ label: "x"; showValue: true; valueText: root.p }}
             SuiProgressBar {{ label: root.p; valueText: root.p; value: 0.5 }}
+            SuiLevelMeter {{ width: 300; label: root.p; valueText: root.p; unit: root.p; level: -20 }}
             SuiChip {{ text: root.p; tone: "bucket1" }}
             SuiBadge {{ text: root.p }}
             SuiKbd {{ text: root.p }}
