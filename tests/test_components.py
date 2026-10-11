@@ -61,6 +61,27 @@ SPECS: dict[str, Spec] = {
     ),
     "SuiChip": Spec('SuiChip { objectName: "subject"; x: 40; y: 40; text: "Receipts"; tone: "bucket1"; dot: true }',
                     R.StaticText, "Receipts"),
+    "SuiCheckBox": Spec(
+        'SuiCheckBox { objectName: "subject"; x: 40; y: 40; text: "Normalise"; description: "To -23 LUFS"; checked: true }',
+        R.CheckBox, "Normalise", True, "subject",
+    ),
+    "SuiSwitch": Spec(
+        'SuiSwitch { objectName: "subject"; x: 40; y: 40; text: "Monitor input"; checked: true }',
+        R.CheckBox, "Monitor input", True, "subject",
+    ),
+    "SuiRadioButton": Spec(
+        'SuiRadioButton { objectName: "subject"; x: 40; y: 40; text: "48 kHz"; checked: true }',
+        R.RadioButton, "48 kHz", True, "subject",
+    ),
+    "SuiSelect": Spec(
+        'SuiSelect { objectName: "subject"; x: 40; y: 40; label: "Input"; model: ["Desk microphone", "Headset"] }',
+        R.ComboBox, "Input", True, "subject",
+    ),
+    "SuiSlider": Spec(
+        'SuiSlider { objectName: "subject"; x: 40; y: 40; width: 240; label: "Gain"; from: -24; to: 24; value: 6;'
+        ' unit: "dB"; showValue: true }',
+        R.Slider, "Gain", True, "subject",
+    ),
     "SuiText": Spec('SuiText { objectName: "subject"; x: 40; y: 40; text: "Recordings"; variant: "title" }',
                     R.Heading, "Recordings"),
     "SuiBadge": Spec('SuiBadge { objectName: "subject"; x: 40; y: 40; count: 120 }', R.StaticText, "99+"),
