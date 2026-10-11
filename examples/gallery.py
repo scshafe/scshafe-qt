@@ -4,6 +4,7 @@
     uv run python examples/gallery.py --theme dark --reduced-motion
     uv run python examples/gallery.py --screenshot DIR   # render PNGs offscreen and exit
 
+The sidebar's first section switches pages: the mail sample, text and controls.
 Keys in the window: Tab / Shift+Tab move focus; j / k move the message
 selection; 1-8 "sort" (a toast); / searches; ? lists the shortcuts.
 """
@@ -18,7 +19,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 GALLERY_QML = HERE / "gallery.qml"
 # The views --screenshot renders: name -> gallery.qml function to call first.
-VIEWS = {"main": "showSample", "dialog": "openDialog", "sheet": "openSheet", "shortcuts": "openShortcuts"}
+VIEWS = {"main": "showSample", "controls": "showControls", "dialog": "openDialog", "sheet": "openSheet",
+         "shortcuts": "openShortcuts"}
 
 
 def load(engine, theme: str = "system", reduced_motion: bool = False):
