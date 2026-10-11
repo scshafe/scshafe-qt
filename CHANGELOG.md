@@ -7,6 +7,43 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.4.0 — 2026-10-11
+
+Form controls. Additive; no existing API changes.
+
+- **`SuiCheckBox`**: a labelled checkbox (the web's CheckboxField) with
+  optional `description` help text, `tristate`, and `label` for a box without
+  visible text.
+- **`SuiSwitch`**: an on/off switch with `description`; the thumb slides on
+  `SuiTheme.duration` (instant under reduced motion) and can be dragged.
+- **`SuiRadioButton`**: one choice of an exclusive group (same parent or a
+  `ButtonGroup`). The group is one Tab stop (its checked button, else the
+  first) and the arrow keys move and check, wrapping, as browsers do.
+- **`SuiSelect`**: a drop-down (`ComboBox`) over strings or objects
+  (`textRole` / `valueRole`), `placeholderText` for no choice, as wide as its
+  widest option; keyboard, type-ahead and pointer choice; options are
+  ListItems.
+- **`SuiSlider`**: horizontal or vertical; arrows step (1 % of the range
+  without `stepSize`), PageUp/PageDown ten steps, Home/End the ends, each
+  emitting `moved()`; `unit`, `decimals` and `showValue` draw `valueText`
+  beside the track (in a fixed `valueWidth`).
+- Every control is keyboard-focusable with the keyboard-only ring, has its
+  accessible role and name (`SuiSelect` and `SuiSlider` warn without a
+  `label`) and animates only on `SuiTheme.duration`.
+- `SuiTheme` NATIVE-ONLY: `indicatorSize`, `checkboxRadius`, `switchWidth`,
+  `switchHeight`, `switchThumbSize`, `sliderTrackHeight`, `sliderHandleSize`,
+  `menuMaxHeight`, and `accentForeground` (marks on an accent fill; 4.5:1 or
+  more on the accent and its hover colour in both themes, tested).
+- `SuiIcon`: built-in `text` and `sliders` icons.
+- Internal `SuiToggleLabel` lays out a toggle's label and help text.
+- Gallery: the pages are now Mail, Typography and Controls (every form
+  control); screenshot views `type` and `controls`.
+- Tests: `tests/test_forms.py` (keyboard, pointer, tristate, the radio
+  group's Tab stop and arrows, the select popup with string and object
+  models, slider steps, vertical sliders, accessibility, colours in both
+  themes, reduced motion), the shared component contract, QML TestCases, the
+  plain-text payload and the wheel smoke scene (27 components).
+
 ## 0.3.0 — 2026-10-11
 
 Typography: the type scale as a component. Additive; no existing API changes.
