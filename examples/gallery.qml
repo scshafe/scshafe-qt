@@ -337,6 +337,58 @@ Window {
                                 }
                             }
                         }
+
+                        SuiText { text: "Progress"; variant: "title"; Layout.topMargin: SuiTheme.spaceSm }
+                        ColumnLayout {
+                            objectName: "progressDemo"
+                            Layout.fillWidth: true
+                            spacing: SuiTheme.spaceMd
+                            SuiProgressBar {
+                                objectName: "transcribeProgress"
+                                Layout.fillWidth: true
+                                label: "Transcribing session 12"
+                                value: 0.42
+                            }
+                            SuiProgressBar {
+                                id: exportProgress
+                                objectName: "exportProgress"
+                                Layout.fillWidth: true
+                                label: "Exporting takes"
+                                from: 0
+                                to: 12
+                                value: 5
+                                valueText: Math.round(value) + " of 12 files"
+                                tone: value >= to ? "ok" : "accent"
+                                cancellable: exportTimer.running
+                                onCancelRequested: {
+                                    exportTimer.stop()
+                                    toasts.show("Export cancelled at " + valueText, { tone: "warn" })
+                                }
+                            }
+                            RowLayout {
+                                spacing: SuiTheme.spaceSm
+                                SuiButton {
+                                    objectName: "exportButton"
+                                    text: exportTimer.running ? "Exporting…" : "Export again"
+                                    enabled: !exportTimer.running
+                                    onClicked: {
+                                        exportProgress.value = 0
+                                        exportTimer.start()
+                                    }
+                                }
+                                SuiText { text: "The cancel button shows while the export runs."; variant: "caption" }
+                            }
+                            Timer {
+                                id: exportTimer
+                                interval: 250
+                                repeat: true
+                                onTriggered: {
+                                    exportProgress.value += 0.5
+                                    if (exportProgress.value >= exportProgress.to)
+                                        stop()
+                                }
+                            }
+                        }
                     }
                 }
             }
