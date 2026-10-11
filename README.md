@@ -13,8 +13,9 @@ type and motion.
 - Python **3.12, 3.13 and 3.14** (`requires-python >=3.12`, from 0.2.0; 0.1.x needed
   3.14). CI tests all three. The PySide6 6.11 wheels are abi3 for CPython 3.10+ and
   declare `requires-python <3.15`, so a newer Python waits for a PySide6 that supports it.
-- Status: **0.7.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
-  (typography), the form controls, `SuiProgressBar`, `SuiLevelMeter` and `SuiTable` below.
+- Status: **0.8.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
+  (typography), the form controls, `SuiProgressBar`, `SuiLevelMeter`, `SuiTable`,
+  `SuiChart` and `SuiHistogram` below.
 - **Untrusted text is safe to pass:** every component renders caller strings as plain text
   (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
   0.1.0 rendered HTML-looking strings as rich text (fixed in 0.1.1; upgrade).
@@ -30,7 +31,7 @@ uv add scshafe-qt            # or: pip install scshafe-qt
 
 Minor releases add components and keep the existing API (0.3.0: `SuiText`; 0.4.0: form
 controls; 0.5.0: `SuiProgressBar`; 0.6.0: `SuiLevelMeter`;
-0.7.0: `SuiTable`); an app
+0.7.0: `SuiTable`; 0.8.0: `SuiChart`, `SuiHistogram`); an app
 pinned below the new minor (`scshafe-qt>=0.2,<0.3`) stays where it is until it widens
 the range. 0.2.0 changed only the supported Python range.
 
@@ -41,12 +42,12 @@ PEP 740 attestations from trusted publishing. As a fallback, install straight fr
 Release; the repository is public, so the download URLs need no token:
 
 ```sh
-pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.7.0/scshafe_qt-0.7.0-py3-none-any.whl
+pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.8.0/scshafe_qt-0.8.0-py3-none-any.whl
 # or, in a uv project, a pinned URL source (uv.lock records its sha256):
-uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.7.0/scshafe_qt-0.7.0-py3-none-any.whl"
+uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.8.0/scshafe_qt-0.8.0-py3-none-any.whl"
 ```
 
-To check the files yourself: `gh release download v0.7.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
+To check the files yourself: `gh release download v0.8.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
 then `sha256sum -c --ignore-missing SHA256SUMS`.
 
 The library accepts the Qt minor it is tested on (`PySide6-Essentials>=6.11.2,<6.12`);
@@ -96,6 +97,8 @@ Imports are versionless (`import Scshafe.Ui`).
 | `SuiDialog`, `SuiSheet` | modal dialog (`title`, `description`, content, `actions`) and a sheet sliding from an `edge` | focus moves in on open, Tab is trapped inside, Escape rejects, focus returns to the opener (with its ring if it had keyboard focus); role Dialog named by the title |
 | `SuiTrail` | vertical steps: `title`, `outcome` (+ `outcomeTone`), `detail`, `via` tag, `warning` marker | List of ListItems ("2. Classifier: Receipts", description = detail, via, warning) |
 | `SuiShortcutOverlay` | the `?` overlay of the app's `shortcuts` (`keys`, `description`, `group`, `separator`) | `?` toggles (not while typing); a SuiDialog |
+| `SuiChart` | x/y chart of `series` of kind `line`, `area`, `band`, `scatter` or `bars` (columns as JS arrays or Python lists; gaps at null/NaN; dense lines drawn min/max per pixel), nice axes (`xLabel`, `yLabel`, limits, `xFormat` / `yFormat`), `markers`, a legend | Chart named by `label`, described by a summary of the series (or `description`); a Tab stop when it has data: ←/→ (PgUp/PgDn, Home/End) step the readout through x, announced; Escape hides it; hover shows it too |
+| `SuiHistogram` | a `SuiChart` of `values` binned into `binCount` (Sturges by default) or `binWidth` bins over `from`..`to`; `density` for shares; `bins` | as `SuiChart`; described by the distribution ("N values in K bins …"); the readout names the bin |
 | `SuiCheckBox`, `SuiSwitch` | labelled toggles with optional `description` (help text under the label); the checkbox does `tristate`; `label` names one without visible text | Space or a click toggles (`toggled()`); CheckBox role (Qt reports switches as checkboxes), described by `description` |
 | `SuiRadioButton` | one choice of an exclusive group (same parent, or a `ButtonGroup`), with `description` | the group is one Tab stop (its checked button); ↑/↓/←/→ move and check, wrapping; RadioButton role |
 | `SuiSelect` | drop-down of one option (`ComboBox`): strings or objects with `textRole` / `valueRole`; `placeholderText` for no choice; as wide as its widest option | Space/Enter opens, ↑/↓ and typing move, Enter chooses, Escape closes; closed, ↑/↓ change it; ComboBox named by `label`, described by the choice |
@@ -150,8 +153,8 @@ uv run python examples/gallery.py --theme dark --reduced-motion
 uv run python examples/gallery.py --screenshot DIR      # PNGs of every view x two themes
 ```
 
-The sidebar's first section switches pages: the mail sample, typography, controls and a
-table of 10,000 rows.
+The sidebar's first section switches pages: the mail sample, typography, controls, a
+table of 10,000 rows and charts.
 In the window: Tab / Shift+Tab, `j` / `k`, `1`–`8` (a toast), `/`, `?`.
 
 ### Typography
@@ -304,6 +307,40 @@ SuiTable {
   header edge) returns to the column's `width`.
 - Scroll bars (internal `SuiScrollBar`) show while the content overflows; Left/Right
   on the body scroll sideways and the header follows.
+
+### Charts
+
+```qml
+SuiChart {
+    label: "Pitch, take 12"; xLabel: "Time (s)"; yLabel: "F0 (Hz)"
+    series: [
+        { kind: "band", name: "Range", x: t, lower: f0lo, upper: f0hi },
+        { kind: "line", name: "F0", x: t, y: f0 },               // null / NaN breaks the line
+        { kind: "scatter", name: "Onsets", x: onsetT, y: onsetF0, tone: "warn" }
+    ]
+    markers: [{ axis: "y", value: 180, label: "Target" }]
+}
+SuiChart { label: "Energy"; series: [{ kind: "area", y: rmsDb, baseline: -60 }] }
+SuiHistogram { label: "Take durations"; values: durations; binWidth: 2.5; xLabel: "Duration (s)" }
+```
+
+- Built on Qt Quick Shapes (lines, areas, bands: `PathMultiline`, the curve renderer) and
+  Canvas (scatter); no Qt Graphs, so `PySide6-Essentials` stays the only dependency.
+  Lines and areas with far more points than pixels are reduced to min/max per pixel
+  column, keeping spikes: a 100,000-point line draws as ~1,500 vertices.
+- Series fields: `kind`, `x` (default 0, 1, …), `y`, `lower` / `upper` (band), `x0` /
+  `x1` (bars), `baseline` (area, default 0), `name`, `tone` (default bucket 1, 2, … by
+  position: the categorical palette, 3:1 on every surface), `size` (scatter).
+- Axes: automatic from the data and markers, or `xMin` / `xMax` / `yMin` / `yMax`;
+  `yNice` (default) / `xNice` extend to whole ticks of 1, 2, 2.5 or 5 x 10^n; `yIntegers`
+  for counts; `xGrid` / `yGrid`. The legend shows with two or more named series.
+- The readout is the accessible part: Tab to the chart, ←/→ step through the first
+  series' x values (each step is announced with `Accessible.announce`), Escape hides it;
+  `inspectedX` and `readoutText` expose it. Nothing animates.
+- `SuiHistogram` bins `values` (non-numbers are left out) into `binCount` bins (Sturges
+  by default) or `binWidth` bins (aligned to multiples of the width; the largest value
+  gets its own bin), over `from`..`to`; `density` plots shares; `bins` is
+  `[{ x0, x1, count, share }]`.
 
 ### Theme and motion
 
