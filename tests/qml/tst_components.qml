@@ -105,6 +105,26 @@ Item {
         columns: [{ key: "name", title: "Take" }, { key: "score", title: "Score", align: "right" }]
         rows: [{ name: "c", score: 3 }, { name: "a", score: 10 }, { name: "b", score: 2 }]
     }
+    SuiChart {
+        id: chart
+        x: 380
+        y: 470
+        width: 260
+        height: 120
+        label: "Pitch"
+        xLabel: "t"
+        series: [{ name: "F0", x: [0, 1, 2], y: [100, 150, 125] }]
+    }
+    SuiHistogram {
+        id: histogram
+        x: 640
+        y: 470
+        width: 260
+        height: 120
+        label: "Durations"
+        values: [1, 2, 2, 3, 3, 3]
+        binWidth: 1
+    }
     SuiToastHost { id: toasts; anchors.fill: parent }
 
     SignalSpy { id: nextSpy; target: list; signalName: "nextRequested" }
@@ -289,6 +309,26 @@ Item {
             compare(table.Accessible.role, Accessible.Table)
             table.clearSelection()
             table.sortKey = ""
+        }
+
+        function test_chart_keyboard_readout() {
+            chart.forceActiveFocus(Qt.TabFocusReason)
+            verify(chart.visualFocus)
+            keyClick(Qt.Key_Right)
+            compare(chart.inspectedX, 0)
+            keyClick(Qt.Key_Right)
+            compare(chart.readoutText, "t: 1.00, F0 150.0")
+            keyClick(Qt.Key_Escape)
+            verify(isNaN(chart.inspectedX))
+            compare(chart.Accessible.role, Accessible.Chart)
+        }
+
+        function test_histogram_bins() {
+            compare(histogram.bins.map(b => b.count), [1, 2, 3])
+            compare(histogram.bins[2].x0, 3)
+            histogram.density = true
+            compare(histogram.series[0].y[2], 0.5)
+            histogram.density = false
         }
 
         function test_list_keys_and_hooks() {
