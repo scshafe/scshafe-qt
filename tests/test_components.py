@@ -82,6 +82,11 @@ SPECS: dict[str, Spec] = {
         ' unit: "dB"; showValue: true }',
         R.Slider, "Gain", True, "subject",
     ),
+    "SuiProgressBar": Spec(
+        'SuiProgressBar { objectName: "subject"; x: 40; y: 40; width: 300; label: "Exporting"; value: 0.4;'
+        ' cancellable: true }',
+        R.ProgressBar, "Exporting", True, "cancelButton",
+    ),
     "SuiText": Spec('SuiText { objectName: "subject"; x: 40; y: 40; text: "Recordings"; variant: "title" }',
                     R.Heading, "Recordings"),
     "SuiBadge": Spec('SuiBadge { objectName: "subject"; x: 40; y: 40; count: 120 }', R.StaticText, "99+"),

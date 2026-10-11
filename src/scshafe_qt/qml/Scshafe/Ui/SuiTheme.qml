@@ -272,6 +272,7 @@ QtObject {
     readonly property int sliderTrackHeight: 4
     readonly property int sliderHandleSize: 16
     readonly property int menuMaxHeight: 320      // select popups
+    readonly property int progressHeight: 6       // progress bar track
     // Marks on an accent fill (check marks, radio dots, switch thumbs): the panel
     // (white) on the light theme's dark accent, the page background on the dark
     // theme's light accent; >= 4.5:1 on --sui-accent in both (tests/test_tokens.py).

@@ -75,6 +75,7 @@ def _scene(port: int) -> str:
             SuiRadioButton {{ text: root.p; description: root.p }}
             SuiSelect {{ id: select; label: "x"; model: [root.p, root.p] }}
             SuiSlider {{ label: "x"; showValue: true; valueText: root.p }}
+            SuiProgressBar {{ label: root.p; valueText: root.p; value: 0.5 }}
             SuiChip {{ text: root.p; tone: "bucket1" }}
             SuiBadge {{ text: root.p }}
             SuiKbd {{ text: root.p }}
