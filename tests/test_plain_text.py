@@ -77,6 +77,10 @@ def _scene(port: int) -> str:
             SuiSlider {{ label: "x"; showValue: true; valueText: root.p }}
             SuiProgressBar {{ label: root.p; valueText: root.p; value: 0.5 }}
             SuiLevelMeter {{ width: 300; label: root.p; valueText: root.p; unit: root.p; level: -20 }}
+            SuiTable {{ width: 300; height: 90; label: root.p
+                columns: [{{ key: "a", title: root.p }}, {{ key: "b", title: "b", format: (v) => root.p }}]
+                rows: [{{ a: root.p, b: 1 }}] }}
+            SuiTable {{ width: 300; height: 70; label: "empty"; columns: [{{ key: "a" }}]; placeholderText: root.p }}
             SuiChip {{ text: root.p; tone: "bucket1" }}
             SuiBadge {{ text: root.p }}
             SuiKbd {{ text: root.p }}

@@ -94,6 +94,17 @@ Item {
         SuiTextField { id: dialogField; width: 200; label: "Note" }
         actions: [ SuiButton { id: dialogOk; text: "OK"; onClicked: dialog.accept() } ]
     }
+    SuiTable {
+        id: table
+        x: 10
+        y: 470
+        width: 360
+        height: 120
+        label: "Takes"
+        selectionMode: "multiple"
+        columns: [{ key: "name", title: "Take" }, { key: "score", title: "Score", align: "right" }]
+        rows: [{ name: "c", score: 3 }, { name: "a", score: 10 }, { name: "b", score: 2 }]
+    }
     SuiToastHost { id: toasts; anchors.fill: parent }
 
     SignalSpy { id: nextSpy; target: list; signalName: "nextRequested" }
@@ -106,6 +117,7 @@ Item {
     SignalSpy { id: movedSpy; target: gain; signalName: "moved" }
     SignalSpy { id: cancelSpy; target: progress; signalName: "cancelRequested" }
     SignalSpy { id: pinSpy; target: meter; signalName: "pinMoved" }
+    SignalSpy { id: tableSpy; target: table; signalName: "activated" }
 
     TestCase {
         name: "SuiComponents"
@@ -115,7 +127,7 @@ Item {
             SuiTheme.mode = "light"
             SuiTheme.reducedMotion = true
             for (const spy of [nextSpy, activatedSpy, sidebarSpy, hookSpy, rejectedSpy, toggledSpy,
-                               activatedSelectSpy, movedSpy, cancelSpy, pinSpy])
+                               activatedSelectSpy, movedSpy, cancelSpy, pinSpy, tableSpy])
                 spy.clear()
             root.forceActiveFocus(Qt.OtherFocusReason)
         }
@@ -257,6 +269,26 @@ Item {
             compare(meter.Accessible.role, Accessible.ProgressBar)
             compare(pin.Accessible.role, Accessible.Slider)
             meter.pinnedLevel = -20
+        }
+
+        function test_table_sort_keys_and_selection() {
+            table.sortBy("score")
+            compare(table.cellText(table._order[0], "name"), "b")  // 2 < 3 < 10: numbers compare as numbers
+            table.sortBy("score")
+            compare(table.sortOrder, Qt.DescendingOrder)
+            compare(table.cellText(table._order[0], "name"), "a")
+            const body = findChild(table, "body")
+            body.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Down)
+            compare(table.currentRow, 1)  // "a", first when descending
+            keyClick(Qt.Key_Down, Qt.ShiftModifier)
+            compare(table.selectedRows, [0, 1])
+            keyClick(Qt.Key_Return)
+            compare(tableSpy.count, 1)
+            compare(tableSpy.signalArguments[0][0], 0)
+            compare(table.Accessible.role, Accessible.Table)
+            table.clearSelection()
+            table.sortKey = ""
         }
 
         function test_list_keys_and_hooks() {
