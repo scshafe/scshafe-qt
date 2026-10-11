@@ -87,6 +87,11 @@ SPECS: dict[str, Spec] = {
         ' cancellable: true }',
         R.ProgressBar, "Exporting", True, "cancelButton",
     ),
+    "SuiLevelMeter": Spec(
+        'SuiLevelMeter { objectName: "subject"; x: 40; y: 40; width: 300; label: "Input level"; level: -18;'
+        ' pinnedLevel: -12; pinnedLabel: "Target"; pinEditable: true }',
+        R.ProgressBar, "Input level", True, "pin",
+    ),
     "SuiText": Spec('SuiText { objectName: "subject"; x: 40; y: 40; text: "Recordings"; variant: "title" }',
                     R.Heading, "Recordings"),
     "SuiBadge": Spec('SuiBadge { objectName: "subject"; x: 40; y: 40; count: 120 }', R.StaticText, "99+"),

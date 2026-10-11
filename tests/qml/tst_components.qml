@@ -86,6 +86,7 @@ Item {
         SuiSelect { id: select; label: "Input"; model: ["Desk microphone", "Headset", "Line in"] }
         SuiSlider { id: gain; label: "Gain"; from: -24; to: 24; stepSize: 0.5; unit: "dB"; showValue: true }
         SuiProgressBar { id: progress; width: 300; label: "Exporting"; from: 0; to: 12; value: 3; cancellable: true }
+        SuiLevelMeter { id: meter; width: 300; label: "Input"; level: -30; pinnedLevel: -20; pinEditable: true }
     }
     SuiDialog {
         id: dialog
@@ -104,6 +105,7 @@ Item {
     SignalSpy { id: activatedSelectSpy; target: select; signalName: "activated" }
     SignalSpy { id: movedSpy; target: gain; signalName: "moved" }
     SignalSpy { id: cancelSpy; target: progress; signalName: "cancelRequested" }
+    SignalSpy { id: pinSpy; target: meter; signalName: "pinMoved" }
 
     TestCase {
         name: "SuiComponents"
@@ -113,7 +115,7 @@ Item {
             SuiTheme.mode = "light"
             SuiTheme.reducedMotion = true
             for (const spy of [nextSpy, activatedSpy, sidebarSpy, hookSpy, rejectedSpy, toggledSpy,
-                               activatedSelectSpy, movedSpy, cancelSpy])
+                               activatedSelectSpy, movedSpy, cancelSpy, pinSpy])
                 spy.clear()
             root.forceActiveFocus(Qt.OtherFocusReason)
         }
@@ -232,6 +234,29 @@ Item {
             progress.tone = "danger"
             compare(fill.color, SuiTheme.toneRed)
             progress.tone = "accent"
+        }
+
+        function test_level_meter() {
+            meter.reset()
+            meter.level = -6
+            meter.level = -24
+            compare(meter.peak, -6)
+            compare(findChild(meter, "levelFill").width, findChild(meter, "bar").width * 0.6)
+            compare(findChild(meter, "peakMarker").color, SuiTheme.toneYellow)
+            verify(!meter.clipped)
+            meter.level = 0
+            verify(meter.clipped)
+            meter.reset()
+            verify(!meter.clipped)
+            const pin = findChild(meter, "pin")
+            pin.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Right)
+            compare(meter.pinnedLevel, -19)
+            compare(pinSpy.count, 1)
+            compare(pinSpy.signalArguments[0][0], -19)
+            compare(meter.Accessible.role, Accessible.ProgressBar)
+            compare(pin.Accessible.role, Accessible.Slider)
+            meter.pinnedLevel = -20
         }
 
         function test_list_keys_and_hooks() {

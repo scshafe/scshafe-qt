@@ -415,6 +415,9 @@ _NATIVE_HEAD = """
     readonly property int sliderHandleSize: 16
     readonly property int menuMaxHeight: 320      // select popups
     readonly property int progressHeight: 6       // progress bar track
+    readonly property int meterThickness: 8       // level meter bar
+    readonly property int meterPinSize: 10        // the pinned-level marker's knob
+    readonly property int meterPeakHold: 1500     // ms a level meter holds its peak
     // Marks on an accent fill (check marks, radio dots, switch thumbs): the panel
     // (white) on the light theme's dark accent, the page background on the dark
     // theme's light accent; >= 4.5:1 on --sui-accent in both (tests/test_tokens.py).
