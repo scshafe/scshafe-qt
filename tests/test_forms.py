@@ -379,12 +379,19 @@ def test_slider_vertical_up_increases(engine, qtbot):
     window.close()
 
 
-def test_slider_pointer_sets_the_value(engine, qtbot):
-    window, slider = slider_scene(engine, qtbot, "from: 0; to: 100; stepSize: 1; value: 0")
+@pytest.mark.parametrize("fraction", [0, 0.1, 0.5, 0.75, 1])
+def test_slider_pointer_sets_the_value_under_it(engine, qtbot, fraction):
+    """A click anywhere on the track puts the handle's centre under the pointer (Qt's mapping:
+    the handle travels inside the control) and the fill ends there."""
+    window, slider = slider_scene(engine, qtbot, "from: 0; to: 100; value: 50")
     moved = spy(slider, "moved()")
-    track = find(window, "track")
-    click(window, track, 0.75, 0.5)
-    assert slider.property("value") == pytest.approx(75, abs=1)
-    assert moved.count() >= 1
+    track, handle, fill = find(window, "track"), find(window, "handle"), find(window, "fill")
+    click(window, track, fraction, 0.5)
+    assert slider.property("value") == pytest.approx(100 * fraction, abs=0.5)
+    point = track.mapToScene(track.boundingRect().topLeft()).x() + track.width() * fraction
+    centre = handle.mapToScene(handle.boundingRect().center()).x()
+    assert centre == pytest.approx(point, abs=1)
+    assert fill.width() == pytest.approx(track.width() * fraction, abs=1)
+    assert moved.count() == (0 if fraction == 0.5 else 1)
     assert slider.hasActiveFocus() and visible_rings(window.contentItem()) == []
     window.close()
