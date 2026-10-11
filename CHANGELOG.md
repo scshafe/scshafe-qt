@@ -7,6 +7,42 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.8.0 — 2026-10-11
+
+Charts. Additive; no existing API changes.
+
+- **`SuiChart`**: an x/y chart of `series` of kind `line`, `area`, `band`,
+  `scatter` and `bars`, from columns (JS arrays or Python lists; null / NaN
+  breaks a line, area or band). Lines, areas and bands are Qt Quick Shapes
+  (`PathMultiline`, curve renderer), scatter a Canvas; no Qt Graphs, so the
+  only dependency stays `PySide6-Essentials`. Dense lines are reduced to
+  min/max per pixel column (100,000 points draw as ~1,500 vertices, spikes
+  kept). Nice axes (automatic or `xMin` / `xMax` / `yMin` / `yMax`; `xNice`,
+  `yNice`, `yIntegers`; `xFormat` / `yFormat`; `xLabel`, `yLabel`; grids),
+  dashed `markers` with labels, a legend for two or more named series,
+  series colours from the bucket palette or a `tone`.
+  The readout shows each series' value at the x under the pointer (the point
+  for scatter, the bin for bars). The chart is a Tab stop when it has data:
+  Left/Right, PageUp/PageDown and Home/End step through x and announce the
+  readout; Escape hides it (`inspectedX`, `readoutText`). Accessible: Chart
+  named by `label`, described by a summary of the series (or `description`).
+- **`SuiHistogram`**: a `SuiChart` that bins `values` into `binCount` bins
+  (Sturges by default) or `binWidth` bins over `from`..`to`, with `density`
+  shares, `bins` and a distribution summary as its description.
+- `SuiTheme` NATIVE-ONLY: `chartLineWidth`, `chartFillAlpha`,
+  `chartPointSize`, `chartTickLength`.
+- `SuiIcon`: built-in `chart` icon.
+- Gallery: a Charts page (pitch with a speaker band, onsets and a target;
+  energy area; score by SNR over 1,500 takes; a histogram of 10,000
+  durations); screenshot view `charts`.
+- Tests: `tests/test_charts.py` (nice axes, limits and formats, integer
+  ticks, line mapping and gaps, 100,000-point decimation keeping extremes,
+  area and band polygons, colours by tone in both themes, scatter pixels,
+  bars, markers and legend, no data, readout by pointer (series and scatter)
+  and keyboard, the accessible summary, histogram binning, density and
+  description), the shared component contract, QML TestCases, the
+  plain-text payload and the wheel smoke scene (32 components).
+
 ## 0.7.0 — 2026-10-11
 
 Table. Additive; no existing API changes.
