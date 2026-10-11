@@ -7,6 +7,45 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.7.0 — 2026-10-19
+
+Table. Additive; no existing API changes.
+
+- **`SuiTable`**: a sortable, virtualised data table over `rows` (a JS array
+  of objects, or a Python list of dicts) and `columns` (`key`, `title`,
+  `width`, `minWidth`, `maxWidth`, `align`, `sortable`, `resizable`,
+  `format(value, row)`, `tone(value, row)`). 10,000 rows: about 80 ms to
+  assign from Python, about 20 ms to sort, about 3 ms a frame to scroll
+  (software renderer), 44 delegates in a 1000 x 700 view.
+  - Sorting by header click or keyboard, or `sortKey` / `sortOrder` /
+    `sortBy()`: numbers numerically, text case-insensitively, empty values
+    last, stable.
+  - Columns resize by dragging a header edge or Ctrl+Left/Right on a focused
+    header; double-click resets; `columnWidths` and `columnResized(key,
+    width)` persist them; the last column fills the view.
+  - Selection (`selectionMode` single / multiple / none): click, Ctrl+click,
+    Shift+click, and the keyboard (arrows, PageUp/PageDown, Home/End, Shift
+    ranges, Ctrl moves, Space toggles, Ctrl+A); `selectedRows`, `currentRow`,
+    `select()`, `selectAll()`, `clearSelection()`; `rowKey` keeps the
+    selection when `rows` is replaced. Enter / double-click emit
+    `activated(row)`. Row numbers are indices into `rows`.
+  - Focus: the header and the body are one Tab stop each, with the
+    keyboard-only ring; `forceActiveFocus()` focuses the body.
+  - Accessible: Table named by `label`, ColumnHeaders described by their
+    sort, rows as ListItems named "Title: value, ..." with their selection.
+- Internal `SuiScrollBar` (themed `T.ScrollBar`).
+- `SuiTheme` NATIVE-ONLY: `tableRowHeight`, `tableColumnWidth`,
+  `tableMinColumnWidth`, `tableMaxColumnWidth`, `scrollBarSize`.
+- `SuiIcon`: built-in `table` icon.
+- Gallery: a Table page with 10,000 made-up takes; screenshot view `table`.
+- Tests: `tests/test_table.py` (virtualisation over 10,000 rows, sort speed
+  and semantics, header sorting, pointer and keyboard selection, activation,
+  selection across sorts and new rows, column resizing by drag, keyboard and
+  reset, clamping and fill, horizontal scrolling, cell format, tone and
+  plain text, accessibility, the placeholder), the shared component
+  contract, a QML TestCase, the plain-text payload and the wheel smoke scene
+  (30 components).
+
 ## 0.6.0 — 2026-10-19
 
 Level meter. Additive; no existing API changes.
