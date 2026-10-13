@@ -7,7 +7,7 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
-## 0.3.0 — 2026-10-11
+## 0.3.0 — 2026-10-13
 
 Typography: the type scale as a component. Additive; no existing API changes.
 
