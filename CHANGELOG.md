@@ -7,7 +7,7 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
-## 0.7.0 — 2026-10-11
+## 0.7.0 — 2026-10-13
 
 Table. Additive; no existing API changes.
 
@@ -46,7 +46,7 @@ Table. Additive; no existing API changes.
   contract, a QML TestCase, the plain-text payload and the wheel smoke scene
   (30 components).
 
-## 0.6.0 — 2026-10-11
+## 0.6.0 — 2026-10-13
 
 Level meter. Additive; no existing API changes.
 
@@ -70,7 +70,7 @@ Level meter. Additive; no existing API changes.
   meters, nothing animating), the shared component contract, a QML
   TestCase, the plain-text payload and the wheel smoke scene (29 components).
 
-## 0.5.0 — 2026-10-11
+## 0.5.0 — 2026-10-13
 
 Progress. Additive; no existing API changes.
 
@@ -91,7 +91,7 @@ Progress. Additive; no existing API changes.
   accessibility), the shared component contract, a QML TestCase, the
   plain-text payload and the wheel smoke scene (28 components).
 
-## 0.4.0 — 2026-10-11
+## 0.4.0 — 2026-10-13
 
 Form controls. Additive; no existing API changes.
 
@@ -128,7 +128,7 @@ Form controls. Additive; no existing API changes.
   themes, reduced motion), the shared component contract, QML TestCases, the
   plain-text payload and the wheel smoke scene (27 components).
 
-## 0.3.0 — 2026-10-11
+## 0.3.0 — 2026-10-13
 
 Typography: the type scale as a component. Additive; no existing API changes.
 
