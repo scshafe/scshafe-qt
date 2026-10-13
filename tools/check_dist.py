@@ -78,6 +78,7 @@ Window {
         sidebar: SuiSidebarList { model: [{ text: "Unsorted", count: 1, status: "ok" }]; Component.onCompleted: built++ }
         content: Column {
             SuiButton { text: "Go"; Component.onCompleted: built++ }
+            SuiText { text: "Title"; variant: "title"; Component.onCompleted: built++ }
             SuiIconButton { label: "Close"; icon.name: "close"; Component.onCompleted: built++ }
             SuiTextField { label: "Note"; Component.onCompleted: built++ }
             SuiSearchField { Component.onCompleted: built++ }
@@ -101,7 +102,7 @@ Window {
     SuiShortcutOverlay { shortcuts: [{ keys: ["?"], description: "Help" }]; Component.onCompleted: built++ }
 }
 """
-SMOKE_COMPONENTS = 21  # public components in qmldir, each built once above
+SMOKE_COMPONENTS = 22  # public components in qmldir, each built once above
 
 
 def one(dist: Path, pattern: str) -> Path:

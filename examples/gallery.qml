@@ -16,11 +16,24 @@ Window {
     readonly property var bucketLabels: ["Receipts", "Travel", "Family", "Newsletters",
                                          "Bills", "Alerts", "Social", "Later"]
 
+    // The gallery's pages (the sidebar's first section); the mail sample is the first.
+    readonly property var pages: [
+        { section: "Gallery", text: "Mail", iconName: "mail", page: "mail" },
+        { section: "Gallery", text: "Text and controls", iconName: "check", page: "controls" }
+    ]
+    property string page: "mail"
+    function showPage(id) {
+        page = id
+        sidebar.selectedIndex = pages.findIndex(p => p.page === id)
+    }
+
     // Hooks for examples/gallery.py --screenshot and the screenshot test.
     function showSample() {
+        showPage("mail")
         toasts.show("Mail from this sender now goes to Family.", { title: "Sorted", tone: "ok", actionText: "Undo", timeout: 0 })
         inbox.forceActiveFocus(Qt.TabFocusReason)  // as if tabbed to: the ring shows
     }
+    function showControls() { showPage("controls") }
     function openDialog() { ruleDialog.open() }
     function openSheet() { senderSheet.open() }
     function openShortcuts() { shortcutOverlay.open() }
@@ -29,6 +42,7 @@ Window {
         senderSheet.close()
         shortcutOverlay.close()
         toasts.clear()
+        showPage("mail")
     }
 
     ListModel {
@@ -71,7 +85,7 @@ Window {
             topMargin: SuiTheme.spaceSm
             leftMargin: SuiTheme.spaceSm
             rightMargin: SuiTheme.spaceSm
-            model: [
+            model: root.pages.concat([
                 { section: "Mailboxes", text: "Unsorted", iconName: "inbox", count: 12, status: "ok" },
                 { section: "Mailboxes", text: "All mail", iconName: "mail", count: -1, status: "none" },
                 { section: "Mailboxes", text: "Archive", iconName: "archive", count: -1, status: "none", enabled: false },
@@ -83,8 +97,13 @@ Window {
                 { section: "Buckets", text: "Alerts", iconName: "tag", count: 0, status: "none" },
                 { section: "Buckets", text: "Social", iconName: "tag", count: 9, status: "ok" },
                 { section: "Buckets", text: "Later", iconName: "clock", count: 130, status: "none" }
-            ]
-            onActivated: (index) => toasts.show("Opened " + model[index].text)
+            ])
+            onActivated: (index) => {
+                const entry = model[index]
+                root.page = entry.page !== undefined ? entry.page : "mail"
+                if (entry.page === undefined)
+                    toasts.show("Opened " + entry.text)
+            }
         }
 
         content: ColumnLayout {
@@ -130,33 +149,113 @@ Window {
                 Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: 1; color: SuiTheme.line }
             }
 
-            SuiBanner {
-                objectName: "banner"
-                Layout.fillWidth: true
-                Layout.margins: SuiTheme.spaceSm
-                tone: "warn"
-                title: "Bills endpoint is failing"
-                text: "Three deliveries are waiting; they will retry in 5 minutes."
-                dismissible: true
-                SuiButton { text: "Retry now"; variant: "secondary" }
-            }
-
-            SuiList {
-                id: inbox
-                objectName: "inbox"
-                label: "Messages"
+            StackLayout {
+                objectName: "pages"
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                model: messages
-                delegate: SuiListRow {
-                    width: ListView.view.width
-                    title: model.sender
-                    subtitle: model.subject
-                    meta: model.time
-                    unread: model.unread
-                    SuiChip { text: root.bucketLabels[model.bucket - 1]; tone: model.bucket; dot: true }
+                currentIndex: Math.max(0, root.pages.findIndex(p => p.page === root.page))
+
+                ColumnLayout {
+                    objectName: "mailPage"
+                    spacing: 0
+                    SuiBanner {
+                        objectName: "banner"
+                        Layout.fillWidth: true
+                        Layout.margins: SuiTheme.spaceSm
+                        tone: "warn"
+                        title: "Bills endpoint is failing"
+                        text: "Three deliveries are waiting; they will retry in 5 minutes."
+                        dismissible: true
+                        SuiButton { text: "Retry now"; variant: "secondary" }
+                    }
+
+                    SuiList {
+                        id: inbox
+                        objectName: "inbox"
+                        label: "Messages"
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        model: messages
+                        delegate: SuiListRow {
+                            width: ListView.view.width
+                            title: model.sender
+                            subtitle: model.subject
+                            meta: model.time
+                            unread: model.unread
+                            SuiChip { text: root.bucketLabels[model.bucket - 1]; tone: model.bucket; dot: true }
+                        }
+                        onActivated: (index) => senderSheet.open()
+                    }
                 }
-                onActivated: (index) => senderSheet.open()
+
+                Flickable {
+                    objectName: "controlsPage"
+                    contentHeight: controlsColumn.implicitHeight + 2 * SuiTheme.spaceXl
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    ColumnLayout {
+                        id: controlsColumn
+                        x: SuiTheme.spaceXl
+                        y: SuiTheme.spaceXl
+                        width: Math.min(parent.width - 2 * SuiTheme.spaceXl, 720)
+                        spacing: SuiTheme.spaceLg
+
+                        SuiText { text: "Typography"; variant: "title" }
+                        SuiText {
+                            Layout.fillWidth: true
+                            variant: "caption"
+                            wrapMode: Text.Wrap
+                            text: "SuiText draws the type scale: one variant per role, each from SuiTheme.textStyles. "
+                                  + "The heading variants are announced as headings."
+                        }
+                        GridLayout {
+                            objectName: "typeSpecimens"
+                            columns: 2
+                            columnSpacing: SuiTheme.spaceLg
+                            rowSpacing: SuiTheme.spaceSm
+                            Repeater {
+                                model: SuiTheme.textVariants
+                                SuiText {
+                                    required property string modelData
+                                    Layout.row: SuiTheme.textVariants.indexOf(modelData)
+                                    Layout.column: 0
+                                    Layout.alignment: Qt.AlignVCenter
+                                    text: modelData
+                                    variant: "code"
+                                    tone: "muted"
+                                }
+                            }
+                            Repeater {
+                                model: SuiTheme.textVariants
+                                SuiText {
+                                    required property string modelData
+                                    Layout.row: SuiTheme.textVariants.indexOf(modelData)
+                                    Layout.column: 1
+                                    Layout.fillWidth: true
+                                    text: modelData === "code" ? "take-0042.wav  48000 Hz" : "Session 12: morning reads"
+                                    variant: modelData
+                                    elide: Text.ElideRight
+                                }
+                            }
+                        }
+                        SuiText { text: "Tones"; variant: "section" }
+                        Flow {
+                            Layout.fillWidth: true
+                            spacing: SuiTheme.spaceMd
+                            Repeater {
+                                model: ["default", "strong", "muted", "accent", "info", "ok", "warn", "danger", "bucket5"]
+                                SuiText { required property string modelData; text: modelData; tone: modelData }
+                            }
+                        }
+                        RowLayout {
+                            spacing: SuiTheme.spaceLg
+                            SuiText { text: "Input"; variant: "label" }
+                            SuiText { text: "-12.4 dB"; variant: "subheading"; tabular: true }
+                            SuiText { text: "peak -3.1 dB"; tone: "warn"; tabular: true }
+                        }
+                    }
+                }
             }
         }
 
@@ -173,7 +272,7 @@ Window {
                 width: parent.width - 2 * SuiTheme.spaceLg
                 spacing: SuiTheme.spaceMd
 
-                Text { text: "Why it was sorted"; font.pixelSize: SuiTheme.fontSizeLg; font.weight: SuiTheme.fontWeightStrong; color: SuiTheme.textStrong }
+                SuiText { text: "Why it was sorted"; variant: "heading" }
                 SuiTrail {
                     objectName: "trail"
                     label: "Sort trail"
@@ -186,7 +285,7 @@ Window {
                     ]
                 }
 
-                Text { text: "Tones"; font.pixelSize: SuiTheme.fontSizeLg; font.weight: SuiTheme.fontWeightStrong; color: SuiTheme.textStrong }
+                SuiText { text: "Tones"; variant: "heading" }
                 Flow {
                     Layout.fillWidth: true
                     spacing: SuiTheme.spaceXs
@@ -221,7 +320,7 @@ Window {
                     SuiChip { text: "with icon"; iconName: "clock"; tone: "info" }
                 }
 
-                Text { text: "Fields"; font.pixelSize: SuiTheme.fontSizeLg; font.weight: SuiTheme.fontWeightStrong; color: SuiTheme.textStrong }
+                SuiText { text: "Fields"; variant: "heading" }
                 SuiTextField { objectName: "noteField"; Layout.fillWidth: true; label: "Note"; placeholderText: "Add a note" }
                 RowLayout {
                     spacing: SuiTheme.spaceSm
@@ -231,11 +330,11 @@ Window {
                     SuiIconButton { label: "Add"; icon.name: "plus"; variant: "default" }
                 }
 
-                Text { text: "Banners"; font.pixelSize: SuiTheme.fontSizeLg; font.weight: SuiTheme.fontWeightStrong; color: SuiTheme.textStrong }
+                SuiText { text: "Banners"; variant: "heading" }
                 SuiBanner { Layout.fillWidth: true; tone: "info"; text: "Live updates are on." }
                 SuiBanner { Layout.fillWidth: true; tone: "danger"; title: "Sign-in expired"; text: "Sign in again to keep sorting."; dismissible: true }
 
-                Text { text: "Empty state"; font.pixelSize: SuiTheme.fontSizeLg; font.weight: SuiTheme.fontWeightStrong; color: SuiTheme.textStrong }
+                SuiText { text: "Empty state"; variant: "heading" }
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: empty.implicitHeight

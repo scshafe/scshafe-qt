@@ -25,6 +25,7 @@ Item {
         SuiSearchField { id: search; width: 240 }
         SuiIconButton { id: iconButton; label: "Dismiss"; icon.name: "close" }
         SuiChip { id: chip; text: "Receipts"; tone: "bucket1" }
+        SuiText { id: heading; text: "Recordings"; variant: "title" }
         SuiSidebarList {
             id: sidebar
             width: 220
@@ -117,6 +118,27 @@ Item {
             SuiTheme.mode = "dark"
             verify(String(label.color) !== light)
             compare(label.color, SuiTheme.bucket1Text)
+        }
+
+        function test_text_variant_tone_and_theme() {
+            compare(heading.font.pixelSize, SuiTheme.fontSize2xl)
+            compare(heading.font.weight, SuiTheme.fontWeightStrong)
+            compare(heading.color, SuiTheme.textStrong)
+            compare(heading.Accessible.role, Accessible.Heading)
+            heading.variant = "label"
+            compare(heading.font.pixelSize, SuiTheme.fontSizeSm)
+            compare(heading.font.capitalization, Font.AllUppercase)
+            compare(heading.color, SuiTheme.muted)
+            compare(heading.Accessible.role, Accessible.StaticText)
+            compare(heading.Accessible.name, "Recordings")
+            heading.tone = "danger"
+            compare(heading.color, SuiTheme.toneRedText)
+            const light = String(heading.color)
+            SuiTheme.mode = "dark"
+            verify(String(heading.color) !== light)
+            compare(heading.color, SuiTheme.toneRedText)
+            heading.variant = "title"
+            heading.tone = ""
         }
 
         function test_list_keys_and_hooks() {

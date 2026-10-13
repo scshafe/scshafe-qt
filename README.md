@@ -13,7 +13,8 @@ type and motion.
 - Python **3.12, 3.13 and 3.14** (`requires-python >=3.12`, from 0.2.0; 0.1.x needed
   3.14). CI tests all three. The PySide6 6.11 wheels are abi3 for CPython 3.10+ and
   declare `requires-python <3.15`, so a newer Python waits for a PySide6 that supports it.
-- Status: **0.2.0**: `SuiTheme` (tokens) and the v0.1 component set below.
+- Status: **0.3.0**: `SuiTheme` (tokens), the v0.1 component set and `SuiText`
+  (typography) below.
 - **Untrusted text is safe to pass:** every component renders caller strings as plain text
   (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
   0.1.0 rendered HTML-looking strings as rich text (fixed in 0.1.1; upgrade).
@@ -27,8 +28,9 @@ From [PyPI](https://pypi.org/project/scshafe-qt/) (from 0.1.2), on Python 3.12 o
 uv add scshafe-qt            # or: pip install scshafe-qt
 ```
 
-An app that pins `scshafe-qt>=0.1.2,<0.2` stays on 0.1.2; widen the range to `<0.3` for
-0.2.0 (same components and API; only the supported Python range changed).
+Minor releases add components and keep the existing API (0.3.0: `SuiText`); an app
+pinned below the new minor (`scshafe-qt>=0.2,<0.3`) stays where it is until it widens
+the range. 0.2.0 changed only the supported Python range.
 
 Every release is also a GitHub Release of `scshafe/scshafe-qt` with the same wheel and
 sdist, their sha256 in the notes and a `SHA256SUMS` file. `publish.yml` uploads the
@@ -37,12 +39,12 @@ PEP 740 attestations from trusted publishing. As a fallback, install straight fr
 Release; the repository is public, so the download URLs need no token:
 
 ```sh
-pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.2.0/scshafe_qt-0.2.0-py3-none-any.whl
+pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.3.0/scshafe_qt-0.3.0-py3-none-any.whl
 # or, in a uv project, a pinned URL source (uv.lock records its sha256):
-uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.2.0/scshafe_qt-0.2.0-py3-none-any.whl"
+uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.3.0/scshafe_qt-0.3.0-py3-none-any.whl"
 ```
 
-To check the files yourself: `gh release download v0.2.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
+To check the files yourself: `gh release download v0.3.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
 then `sha256sum -c --ignore-missing SHA256SUMS`.
 
 The library accepts the Qt minor it is tested on (`PySide6-Essentials>=6.11.2,<6.12`);
@@ -92,6 +94,7 @@ Imports are versionless (`import Scshafe.Ui`).
 | `SuiDialog`, `SuiSheet` | modal dialog (`title`, `description`, content, `actions`) and a sheet sliding from an `edge` | focus moves in on open, Tab is trapped inside, Escape rejects, focus returns to the opener (with its ring if it had keyboard focus); role Dialog named by the title |
 | `SuiTrail` | vertical steps: `title`, `outcome` (+ `outcomeTone`), `detail`, `via` tag, `warning` marker | List of ListItems ("2. Classifier: Receipts", description = detail, via, warning) |
 | `SuiShortcutOverlay` | the `?` overlay of the app's `shortcuts` (`keys`, `description`, `group`, `separator`) | `?` toggles (not while typing); a SuiDialog |
+| `SuiText` | text in a type style: `variant` `display` / `title` / `heading` / `subheading` / `section` / `label` / `body` / `caption` / `small` / `code`; `tone` overrides the colour; `tabular` digits | heading variants are Headings, the rest StaticText, named by the text; plain text |
 | `SuiIcon`, `SuiKbd` | built-in vector icons (`SuiIcon.names`) or a tinted image; a keyboard-key badge | icons are decorative unless given a `label` |
 
 ```qml
@@ -135,10 +138,47 @@ an arrow key is used (the `:focus-visible` heuristic).
 ```sh
 uv run python examples/gallery.py                       # follows the OS theme
 uv run python examples/gallery.py --theme dark --reduced-motion
-uv run python examples/gallery.py --screenshot DIR      # PNGs of four views x two themes
+uv run python examples/gallery.py --screenshot DIR      # PNGs of every view x two themes
 ```
 
+The sidebar's first section switches pages: the mail sample, and text and controls.
 In the window: Tab / Shift+Tab, `j` / `k`, `1`–`8` (a toast), `/`, `?`.
+
+### Typography
+
+`SuiText` is a `Text` in one of the type styles of `SuiTheme.textStyles` (generated from
+`TEXT_STYLES` in the NATIVE-ONLY section of `tools/gen_tokens.py`):
+
+| `variant` | size / weight | colour | web (`components.css`) |
+| --- | --- | --- | --- |
+| `display` | 24 px / 600, -0.01em | strong | (native only) |
+| `title` | 20 px / 600, -0.01em | strong | Title `h1` |
+| `heading` | 16 px / 600 | strong | Title `h2` |
+| `subheading` | 14 px / 600 | strong | Title `h3` |
+| `section` | 13 px / 600, caps, 0.06em | muted | Title `h4`–`h6` |
+| `label` | 12 px / 600, caps, 0.05em | muted | Label |
+| `body` (default) | 13 px / 400, line height 1.5 | text | body text |
+| `caption` | 12 px / 400, line height 1.5 | muted | Description |
+| `small` | 11 px / 400 | muted | (native only) |
+| `code` | 12 px / 400, `monoFamily` | text | Identifier |
+
+```qml
+SuiText { text: "Recordings"; variant: "title" }
+SuiText { text: take.note; variant: "caption"; wrapMode: Text.Wrap; width: parent.width }
+SuiText { text: "-12.4 dB"; tone: "warn"; tabular: true }
+```
+
+- `tone` overrides the variant's colour: `default` (`--sui-text`), `strong`, `muted`,
+  `accent`, a status tone (`info`, `ok`, `warn`, `danger`: the tone's text colour) or a
+  bucket. `SuiTheme.textColor(tone)` is the same mapping for other items.
+- Titles take `--sui-text-strong`, which the registry describes as the colour of titles
+  (the web's `.sui-title` uses `--sui-text`); the native dialogs and toasts do the same.
+- The line height (`leading`) applies once the text wraps (`wrapMode`), as a fixed
+  `size x leading` pixels per line like CSS `line-height`; a single line keeps the font's
+  own height so it centres in rows. Caps are drawn; the accessible name keeps the text.
+- `tabular: true` sets the `tnum` feature (equal-width digits) for values that change.
+- Everything else is `Text`'s: `elide`, `wrapMode`, `maximumLineCount`, alignment.
+  Caller text is plain text (`textFormat` is `Text.PlainText`).
 
 ### Theme and motion
 
@@ -151,12 +191,20 @@ is `SuiTheme.textStrong`; `SuiTheme.registry` maps CSS names to property names).
   Qt (through 6.11) exposes **no** OS reduced-motion preference (QStyleHints has none;
   `QAccessibilityHints`, 6.10+, only carries `contrastPreference`), so the application sets it,
   e.g. from GNOME's `org.gnome.desktop.interface enable-animations` or macOS's
-  "Reduce motion" setting.
+  "Reduce motion" setting. Every component animates only on `SuiTheme.duration`
+  (`tests/test_rules.py` checks it statically and, over the gallery, at runtime), so this
+  one switch stops them all; it can change at any time:
+
+  ```python
+  theme = engine.singletonInstance("Scshafe.Ui", "SuiTheme")   # after scshafe_qt.register(engine)
+  theme.setProperty("reducedMotion", True)
+  ```
 - Units: lengths are logical pixels (CSS px), durations milliseconds; shadows are
   `{ offsetX, offsetY, blur, spread, color }` for `MultiEffect`.
 - Native-only tokens (not in the registry) live in the clearly marked NATIVE-ONLY
   section of `tools/gen_tokens.py` and are generated into `SuiTheme.qml`: focus ring,
-  control metrics and layout defaults, type scale, the bucket palette, tone helpers
+  control metrics and layout defaults, type scale and text styles (`textStyles`,
+  `textStyle(variant)`, `textColor(tone)`), the bucket palette, tone helpers
   (`toneBase`, `toneText`, `toneFill`, `toneBorder`, `statusColor`), `monoFamily` and
   `alpha(color, amount)`.
 

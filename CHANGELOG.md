@@ -7,6 +7,33 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.3.0 — 2026-10-13
+
+Typography: the type scale as a component. Additive; no existing API changes.
+
+- **`SuiText`**: a `Text` in one of ten type styles, `variant` `display`,
+  `title`, `heading`, `subheading`, `section`, `label`, `body` (default),
+  `caption`, `small`, `code`. `title` / `heading` / `subheading` / `section`
+  are the web library's Title h1 / h2 / h3 / h4-h6, `label` its Label and
+  `caption` its Description. `tone` overrides the colour (`default`, `strong`,
+  `muted`, `accent`, a status tone or a bucket); `tabular` sets equal-width
+  digits; the line height applies to wrapped text. Heading variants are
+  accessible Headings, the others StaticText; caller text is plain text.
+- `SuiTheme`: NATIVE-ONLY text styles generated from `TEXT_STYLES` in
+  `tools/gen_tokens.py`: `textStyles` (size and weight from the type scale,
+  tracking, caps, leading, default tone, heading, mono), `textVariants`,
+  `textStyle(variant)` and `textColor(tone)`.
+- Reduced motion: `SuiTheme.reducedMotion` (since 0.1.0) is the app's switch;
+  the README now shows setting it from Python. Every animation, including the
+  new components', runs on `SuiTheme.duration`.
+- Gallery: pages in the sidebar's first section (the mail sample; text and
+  controls, with every type style and tone); the inspector's headings are
+  `SuiText`. `examples/gallery.py --screenshot` adds the `controls` view.
+- Tests: `tests/test_typography.py` (styles against the generator, the web
+  mapping, tones in both themes, leading, tabular digits, literal markup),
+  the shared component contract, a QML TestCase, the plain-text payload scene
+  and the wheel smoke scene.
+
 ## 0.2.0 — 2026-10-06
 
 Python 3.12 and 3.13 supported. No change to the components, the QML module

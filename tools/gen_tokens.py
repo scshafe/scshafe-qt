@@ -359,6 +359,30 @@ MONO_FAMILIES = {
 }
 MONO_FALLBACK = "monospace"
 
+# Text styles: the variants of SuiText, over the type scale below. The web
+# library's Title h1 is "title", h2 "heading", h3 "subheading", h4-h6 "section";
+# its Label is "label" and its Description "caption" (components.css). The web
+# draws titles in --sui-text; here they take --sui-text-strong, which the
+# registry describes as the colour of titles, as the native dialogs and toasts do.
+#   size, weight: type-scale properties; tracking: letter spacing in em;
+#   caps: uppercase; leading: line height as a multiple of the size (CSS
+#   line-height), applied to wrapped text; tone: the default colour role
+#   ("strong", "default", "muted"); heading: announced as a heading; mono: monoFamily.
+TEXT_STYLES = (
+    # name          size            weight              tracking caps  leading tone       heading mono
+    ("display",    "fontSize3xl",  "fontWeightStrong", -0.01,   False, 1.25,  "strong",  True,   False),
+    ("title",      "fontSize2xl",  "fontWeightStrong", -0.01,   False, 1.25,  "strong",  True,   False),
+    ("heading",    "fontSizeLg",   "fontWeightStrong", 0,       False, 1.25,  "strong",  True,   False),
+    ("subheading", "fontSizeBase", "fontWeightStrong", 0,       False, 1.25,  "strong",  True,   False),
+    ("section",    "fontSizeMd",   "fontWeightStrong", 0.06,    True,  1.25,  "muted",   True,   False),
+    ("label",      "fontSizeSm",   "fontWeightStrong", 0.05,    True,  1.5,   "muted",   False,  False),
+    ("body",       "fontSizeMd",   "fontWeightNormal", 0,       False, 1.5,   "default", False,  False),
+    ("caption",    "fontSizeSm",   "fontWeightNormal", 0,       False, 1.5,   "muted",   False,  False),
+    ("small",      "fontSizeXs",   "fontWeightNormal", 0,       False, 1.4,   "muted",   False,  False),
+    ("code",       "fontSizeSm",   "fontWeightNormal", 0,       False, 1.5,   "default", False,  True),
+)
+TEXT_STYLE_KEYS = ("size", "weight", "tracking", "caps", "leading", "tone", "heading", "mono")
+
 _NATIVE_HEAD = """
     // ==== NATIVE-ONLY TOKENS =============================================
     // Not in the @scshafe/ui registry: defined in tools/gen_tokens.py (the
@@ -408,6 +432,32 @@ _NATIVE_HEAD = """
     readonly property int fontWeightNormal: Font.Normal
     readonly property int fontWeightStrong: Font.DemiBold  // 600
     readonly property int fontWeightBold: Font.Bold        // 700
+
+    // ---- Text styles (SuiText `variant`) --------------------------------
+    // size and weight from the type scale; tracking: letter spacing in em (x size
+    // = pixels); caps: uppercase; leading: line height as a multiple of the size
+    // (CSS line-height), for wrapped text; tone: the default colour role;
+    // heading: announced as a heading; mono: monoFamily. Web: .sui-title-h1 =
+    // title, h2 = heading, h3 = subheading, h4-h6 = section, .sui-label = label,
+    // .sui-description = caption.
+    readonly property var textStyles: ({
+{text_styles}
+    })
+    readonly property var textVariants: [{text_variants}]
+    // The style of `variant`; an unknown variant is body.
+    function textStyle(variant) {
+        return textStyles[variant] !== undefined ? textStyles[variant] : textStyles.body
+    }
+    // Text colour by role: "strong" | "muted" | "accent" | "default" (--sui-text) |
+    // a status or bucket tone (its text colour, SuiTheme.toneText).
+    function textColor(tone) {
+        switch (tone) {
+        case "strong": return textStrong
+        case "muted": return muted
+        case "accent": return accent
+        default: return toneText(tone)
+        }
+    }
 
     // ---- Monospace face ---------------------------------------------------
     // --sui-mono is a CSS stack; Qt takes one family. `monoFamily` is the first
@@ -504,6 +554,14 @@ _NATIVE_TAIL = """
 """
 
 
+def _text_style_value(value) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, str):  # a type-scale property, or a tone role
+        return value if value.startswith("font") else json.dumps(value)
+    return _fmt_num(value)
+
+
 def render_native() -> str:
     mono_doc = "\n".join(
         f"    //   {plat}: {', '.join(fams)}" for plat, fams in MONO_FAMILIES.items()
@@ -511,8 +569,20 @@ def render_native() -> str:
     mono_map = "{ " + ", ".join(
         f"{plat}: [{', '.join(json.dumps(f) for f in fams)}]" for plat, fams in MONO_FAMILIES.items()
     ) + " }"
+    width = max(len(s[0]) for s in TEXT_STYLES)
+    text_styles = ",\n".join(
+        f"        {name + ':':<{width + 1}} {{ "
+        + ", ".join(
+            f"{key}: {_text_style_value(value)}"
+            for key, value in zip(TEXT_STYLE_KEYS, style, strict=True)
+        )
+        + " }"
+        for name, *style in TEXT_STYLES
+    )
     out = [
-        _NATIVE_HEAD.replace("{mono_doc}", mono_doc)
+        _NATIVE_HEAD.replace("{text_styles}", text_styles)
+        .replace("{text_variants}", ", ".join(json.dumps(s[0]) for s in TEXT_STYLES))
+        .replace("{mono_doc}", mono_doc)
         .replace("{mono_map}", mono_map)
         .replace("{mono_fallback}", json.dumps(MONO_FALLBACK))
         .replace("{tone_tint}", _fmt_num(TONE_TINT))

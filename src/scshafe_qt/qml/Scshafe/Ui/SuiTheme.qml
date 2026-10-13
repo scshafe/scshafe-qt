@@ -291,6 +291,41 @@ QtObject {
     readonly property int fontWeightStrong: Font.DemiBold  // 600
     readonly property int fontWeightBold: Font.Bold        // 700
 
+    // ---- Text styles (SuiText `variant`) --------------------------------
+    // size and weight from the type scale; tracking: letter spacing in em (x size
+    // = pixels); caps: uppercase; leading: line height as a multiple of the size
+    // (CSS line-height), for wrapped text; tone: the default colour role;
+    // heading: announced as a heading; mono: monoFamily. Web: .sui-title-h1 =
+    // title, h2 = heading, h3 = subheading, h4-h6 = section, .sui-label = label,
+    // .sui-description = caption.
+    readonly property var textStyles: ({
+        display:    { size: fontSize3xl, weight: fontWeightStrong, tracking: -0.01, caps: false, leading: 1.25, tone: "strong", heading: true, mono: false },
+        title:      { size: fontSize2xl, weight: fontWeightStrong, tracking: -0.01, caps: false, leading: 1.25, tone: "strong", heading: true, mono: false },
+        heading:    { size: fontSizeLg, weight: fontWeightStrong, tracking: 0, caps: false, leading: 1.25, tone: "strong", heading: true, mono: false },
+        subheading: { size: fontSizeBase, weight: fontWeightStrong, tracking: 0, caps: false, leading: 1.25, tone: "strong", heading: true, mono: false },
+        section:    { size: fontSizeMd, weight: fontWeightStrong, tracking: 0.06, caps: true, leading: 1.25, tone: "muted", heading: true, mono: false },
+        label:      { size: fontSizeSm, weight: fontWeightStrong, tracking: 0.05, caps: true, leading: 1.5, tone: "muted", heading: false, mono: false },
+        body:       { size: fontSizeMd, weight: fontWeightNormal, tracking: 0, caps: false, leading: 1.5, tone: "default", heading: false, mono: false },
+        caption:    { size: fontSizeSm, weight: fontWeightNormal, tracking: 0, caps: false, leading: 1.5, tone: "muted", heading: false, mono: false },
+        small:      { size: fontSizeXs, weight: fontWeightNormal, tracking: 0, caps: false, leading: 1.4, tone: "muted", heading: false, mono: false },
+        code:       { size: fontSizeSm, weight: fontWeightNormal, tracking: 0, caps: false, leading: 1.5, tone: "default", heading: false, mono: true }
+    })
+    readonly property var textVariants: ["display", "title", "heading", "subheading", "section", "label", "body", "caption", "small", "code"]
+    // The style of `variant`; an unknown variant is body.
+    function textStyle(variant) {
+        return textStyles[variant] !== undefined ? textStyles[variant] : textStyles.body
+    }
+    // Text colour by role: "strong" | "muted" | "accent" | "default" (--sui-text) |
+    // a status or bucket tone (its text colour, SuiTheme.toneText).
+    function textColor(tone) {
+        switch (tone) {
+        case "strong": return textStrong
+        case "muted": return muted
+        case "accent": return accent
+        default: return toneText(tone)
+        }
+    }
+
     // ---- Monospace face ---------------------------------------------------
     // --sui-mono is a CSS stack; Qt takes one family. `monoFamily` is the first
     // installed candidate for the platform (assign it to override):

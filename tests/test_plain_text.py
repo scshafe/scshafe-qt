@@ -69,6 +69,7 @@ def _scene(port: int) -> str:
         Column {{
             id: col; width: parent.width; spacing: 4
             SuiButton {{ text: root.p }}
+            SuiText {{ text: root.p; variant: "title" }}
             SuiChip {{ text: root.p; tone: "bucket1" }}
             SuiBadge {{ text: root.p }}
             SuiKbd {{ text: root.p }}
