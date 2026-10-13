@@ -7,7 +7,7 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
-## 0.4.0 — 2026-10-11
+## 0.4.0 — 2026-10-13
 
 Form controls. Additive; no existing API changes.
 
@@ -44,7 +44,7 @@ Form controls. Additive; no existing API changes.
   themes, reduced motion), the shared component contract, QML TestCases, the
   plain-text payload and the wheel smoke scene (27 components).
 
-## 0.3.0 — 2026-10-11
+## 0.3.0 — 2026-10-13
 
 Typography: the type scale as a component. Additive; no existing API changes.
 
