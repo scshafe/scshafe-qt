@@ -406,6 +406,27 @@ _NATIVE_HEAD = """
     readonly property int statusDotSize: 8
     readonly property int splitterHandleWidth: 8  // hit area; the drawn line is 1px
     readonly property int splitterStep: 16        // arrow-key resize step (Shift: x4)
+    readonly property int indicatorSize: 16       // checkbox and radio boxes
+    readonly property int checkboxRadius: 4
+    readonly property int switchWidth: 32
+    readonly property int switchHeight: 18
+    readonly property int switchThumbSize: 12
+    readonly property int sliderTrackHeight: 4
+    readonly property int sliderHandleSize: 16
+    readonly property int menuMaxHeight: 320      // select popups
+    readonly property int progressHeight: 6       // progress bar track
+    readonly property int meterThickness: 8       // level meter bar
+    readonly property int meterPinSize: 10        // the pinned-level marker's knob
+    readonly property int meterPeakHold: 1500     // ms a level meter holds its peak
+    readonly property int tableRowHeight: 32      // table rows and header
+    readonly property int tableColumnWidth: 120   // a column without a width
+    readonly property int tableMinColumnWidth: 48
+    readonly property int tableMaxColumnWidth: 960
+    readonly property int scrollBarSize: 10       // hit area; the thumb is drawn thinner until hovered
+    // Marks on an accent fill (check marks, radio dots, switch thumbs): the panel
+    // (white) on the light theme's dark accent, the page background on the dark
+    // theme's light accent; >= 4.5:1 on --sui-accent in both (tests/test_tokens.py).
+    readonly property color accentForeground: dark ? bg : panel
 
     // ---- Layout defaults ------------------------------------------------
     readonly property int sidebarWidth: 232

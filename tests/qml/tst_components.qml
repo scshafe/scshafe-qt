@@ -72,11 +72,38 @@ Item {
     }
 
     SuiButton { id: opener; x: 400; y: 320; text: "Open"; onClicked: dialog.open() }
+
+    Column {
+        x: 560
+        y: 320
+        spacing: 4
+        SuiCheckBox { id: check; text: "Normalise"; description: "Every take to -23 LUFS" }
+        SuiSwitch { id: monitor; text: "Monitor input" }
+        Column {
+            SuiRadioButton { id: rate0; text: "16 kHz" }
+            SuiRadioButton { id: rate1; text: "48 kHz"; checked: true }
+        }
+        SuiSelect { id: select; label: "Input"; model: ["Desk microphone", "Headset", "Line in"] }
+        SuiSlider { id: gain; label: "Gain"; from: -24; to: 24; stepSize: 0.5; unit: "dB"; showValue: true }
+        SuiProgressBar { id: progress; width: 300; label: "Exporting"; from: 0; to: 12; value: 3; cancellable: true }
+        SuiLevelMeter { id: meter; width: 300; label: "Input"; level: -30; pinnedLevel: -20; pinEditable: true }
+    }
     SuiDialog {
         id: dialog
         title: "Confirm"
         SuiTextField { id: dialogField; width: 200; label: "Note" }
         actions: [ SuiButton { id: dialogOk; text: "OK"; onClicked: dialog.accept() } ]
+    }
+    SuiTable {
+        id: table
+        x: 10
+        y: 470
+        width: 360
+        height: 120
+        label: "Takes"
+        selectionMode: "multiple"
+        columns: [{ key: "name", title: "Take" }, { key: "score", title: "Score", align: "right" }]
+        rows: [{ name: "c", score: 3 }, { name: "a", score: 10 }, { name: "b", score: 2 }]
     }
     SuiToastHost { id: toasts; anchors.fill: parent }
 
@@ -85,6 +112,12 @@ Item {
     SignalSpy { id: sidebarSpy; target: sidebar; signalName: "activated" }
     SignalSpy { id: hookSpy; target: search; signalName: "focusRequested" }
     SignalSpy { id: rejectedSpy; target: dialog; signalName: "rejected" }
+    SignalSpy { id: toggledSpy; target: rate0; signalName: "toggled" }
+    SignalSpy { id: activatedSelectSpy; target: select; signalName: "activated" }
+    SignalSpy { id: movedSpy; target: gain; signalName: "moved" }
+    SignalSpy { id: cancelSpy; target: progress; signalName: "cancelRequested" }
+    SignalSpy { id: pinSpy; target: meter; signalName: "pinMoved" }
+    SignalSpy { id: tableSpy; target: table; signalName: "activated" }
 
     TestCase {
         name: "SuiComponents"
@@ -93,7 +126,8 @@ Item {
         function init() {
             SuiTheme.mode = "light"
             SuiTheme.reducedMotion = true
-            for (const spy of [nextSpy, activatedSpy, sidebarSpy, hookSpy, rejectedSpy])
+            for (const spy of [nextSpy, activatedSpy, sidebarSpy, hookSpy, rejectedSpy, toggledSpy,
+                               activatedSelectSpy, movedSpy, cancelSpy, pinSpy, tableSpy])
                 spy.clear()
             root.forceActiveFocus(Qt.OtherFocusReason)
         }
@@ -139,6 +173,122 @@ Item {
             compare(heading.color, SuiTheme.toneRedText)
             heading.variant = "title"
             heading.tone = ""
+        }
+
+        function test_checkbox_and_switch() {
+            check.forceActiveFocus(Qt.TabFocusReason)
+            verify(findChild(check, "focusRing").visible)
+            keyClick(Qt.Key_Space)
+            verify(check.checked)
+            compare(findChild(check, "box").color, SuiTheme.accentHover)  // focused: the hover accent
+            verify(findChild(check, "checkMark").visible)
+            compare(check.Accessible.description, "Every take to -23 LUFS")
+            check.checked = false
+            monitor.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Space)
+            verify(monitor.checked)
+            const thumb = findChild(monitor, "thumb")
+            compare(thumb.x, findChild(monitor, "track").width - thumb.width - thumb.inset)  // reduced motion: there
+            monitor.checked = false
+        }
+
+        function test_radio_group_arrows() {
+            rate1.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Down)  // wraps to the first
+            verify(rate0.checked && rate0.activeFocus && !rate1.checked)
+            compare(toggledSpy.count, 1)
+            verify(rate0._tabStop && !rate1._tabStop)
+            keyClick(Qt.Key_Up)
+            verify(rate1.checked)
+        }
+
+        function test_select_keys() {
+            select.currentIndex = 0
+            select.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Down)  // closed: moves the choice
+            compare(select.currentText, "Headset")
+            compare(activatedSelectSpy.count, 1)
+            compare(select.Accessible.name, "Input")
+            compare(select.Accessible.description, "Headset")
+            keyClick(Qt.Key_Space)
+            tryCompare(select.popup, "opened", true)
+            keyClick(Qt.Key_Down)
+            keyClick(Qt.Key_Return)
+            tryCompare(select.popup, "visible", false)
+            compare(select.currentText, "Line in")
+        }
+
+        function test_slider_keys() {
+            gain.value = 0
+            gain.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Right)
+            compare(gain.value, 0.5)
+            keyClick(Qt.Key_PageUp)
+            compare(gain.value, 5.5)
+            keyClick(Qt.Key_End)
+            compare(gain.value, 24)
+            compare(gain.valueText, "24.0 dB")
+            compare(movedSpy.count, 3)
+            compare(gain.Accessible.role, Accessible.Slider)
+        }
+
+        function test_progress_and_cancel() {
+            const fill = findChild(progress, "fill")
+            compare(fill.width, findChild(progress, "track").width / 4)  // reduced motion: no slide
+            compare(progress.valueText, "25 %")
+            compare(progress.Accessible.role, Accessible.ProgressBar)
+            compare(progress.Accessible.name, "Exporting")
+            const cancel = findChild(progress, "cancelButton")
+            compare(cancel.Accessible.name, "Cancel Exporting")
+            cancel.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Space)
+            compare(cancelSpy.count, 1)
+            progress.tone = "danger"
+            compare(fill.color, SuiTheme.toneRed)
+            progress.tone = "accent"
+        }
+
+        function test_level_meter() {
+            meter.reset()
+            meter.level = -6
+            meter.level = -24
+            compare(meter.peak, -6)
+            compare(findChild(meter, "levelFill").width, findChild(meter, "bar").width * 0.6)
+            compare(findChild(meter, "peakMarker").color, SuiTheme.toneYellow)
+            verify(!meter.clipped)
+            meter.level = 0
+            verify(meter.clipped)
+            meter.reset()
+            verify(!meter.clipped)
+            const pin = findChild(meter, "pin")
+            pin.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Right)
+            compare(meter.pinnedLevel, -19)
+            compare(pinSpy.count, 1)
+            compare(pinSpy.signalArguments[0][0], -19)
+            compare(meter.Accessible.role, Accessible.ProgressBar)
+            compare(pin.Accessible.role, Accessible.Slider)
+            meter.pinnedLevel = -20
+        }
+
+        function test_table_sort_keys_and_selection() {
+            table.sortBy("score")
+            compare(table.cellText(table._order[0], "name"), "b")  // 2 < 3 < 10: numbers compare as numbers
+            table.sortBy("score")
+            compare(table.sortOrder, Qt.DescendingOrder)
+            compare(table.cellText(table._order[0], "name"), "a")
+            const body = findChild(table, "body")
+            body.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Down)
+            compare(table.currentRow, 1)  // "a", first when descending
+            keyClick(Qt.Key_Down, Qt.ShiftModifier)
+            compare(table.selectedRows, [0, 1])
+            keyClick(Qt.Key_Return)
+            compare(tableSpy.count, 1)
+            compare(tableSpy.signalArguments[0][0], 0)
+            compare(table.Accessible.role, Accessible.Table)
+            table.clearSelection()
+            table.sortKey = ""
         }
 
         function test_list_keys_and_hooks() {

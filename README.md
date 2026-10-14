@@ -13,8 +13,8 @@ type and motion.
 - Python **3.12, 3.13 and 3.14** (`requires-python >=3.12`, from 0.2.0; 0.1.x needed
   3.14). CI tests all three. The PySide6 6.11 wheels are abi3 for CPython 3.10+ and
   declare `requires-python <3.15`, so a newer Python waits for a PySide6 that supports it.
-- Status: **0.3.0**: `SuiTheme` (tokens), the v0.1 component set and `SuiText`
-  (typography) below.
+- Status: **0.7.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
+  (typography), the form controls, `SuiProgressBar`, `SuiLevelMeter` and `SuiTable` below.
 - **Untrusted text is safe to pass:** every component renders caller strings as plain text
   (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
   0.1.0 rendered HTML-looking strings as rich text (fixed in 0.1.1; upgrade).
@@ -28,7 +28,9 @@ From [PyPI](https://pypi.org/project/scshafe-qt/) (from 0.1.2), on Python 3.12 o
 uv add scshafe-qt            # or: pip install scshafe-qt
 ```
 
-Minor releases add components and keep the existing API (0.3.0: `SuiText`); an app
+Minor releases add components and keep the existing API (0.3.0: `SuiText`; 0.4.0: form
+controls; 0.5.0: `SuiProgressBar`; 0.6.0: `SuiLevelMeter`;
+0.7.0: `SuiTable`); an app
 pinned below the new minor (`scshafe-qt>=0.2,<0.3`) stays where it is until it widens
 the range. 0.2.0 changed only the supported Python range.
 
@@ -39,12 +41,12 @@ PEP 740 attestations from trusted publishing. As a fallback, install straight fr
 Release; the repository is public, so the download URLs need no token:
 
 ```sh
-pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.3.0/scshafe_qt-0.3.0-py3-none-any.whl
+pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.7.0/scshafe_qt-0.7.0-py3-none-any.whl
 # or, in a uv project, a pinned URL source (uv.lock records its sha256):
-uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.3.0/scshafe_qt-0.3.0-py3-none-any.whl"
+uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.7.0/scshafe_qt-0.7.0-py3-none-any.whl"
 ```
 
-To check the files yourself: `gh release download v0.3.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
+To check the files yourself: `gh release download v0.7.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
 then `sha256sum -c --ignore-missing SHA256SUMS`.
 
 The library accepts the Qt minor it is tested on (`PySide6-Essentials>=6.11.2,<6.12`);
@@ -94,6 +96,13 @@ Imports are versionless (`import Scshafe.Ui`).
 | `SuiDialog`, `SuiSheet` | modal dialog (`title`, `description`, content, `actions`) and a sheet sliding from an `edge` | focus moves in on open, Tab is trapped inside, Escape rejects, focus returns to the opener (with its ring if it had keyboard focus); role Dialog named by the title |
 | `SuiTrail` | vertical steps: `title`, `outcome` (+ `outcomeTone`), `detail`, `via` tag, `warning` marker | List of ListItems ("2. Classifier: Receipts", description = detail, via, warning) |
 | `SuiShortcutOverlay` | the `?` overlay of the app's `shortcuts` (`keys`, `description`, `group`, `separator`) | `?` toggles (not while typing); a SuiDialog |
+| `SuiCheckBox`, `SuiSwitch` | labelled toggles with optional `description` (help text under the label); the checkbox does `tristate`; `label` names one without visible text | Space or a click toggles (`toggled()`); CheckBox role (Qt reports switches as checkboxes), described by `description` |
+| `SuiRadioButton` | one choice of an exclusive group (same parent, or a `ButtonGroup`), with `description` | the group is one Tab stop (its checked button); ↑/↓/←/→ move and check, wrapping; RadioButton role |
+| `SuiSelect` | drop-down of one option (`ComboBox`): strings or objects with `textRole` / `valueRole`; `placeholderText` for no choice; as wide as its widest option | Space/Enter opens, ↑/↓ and typing move, Enter chooses, Escape closes; closed, ↑/↓ change it; ComboBox named by `label`, described by the choice |
+| `SuiSlider` | number in a range (`from`, `to`, `stepSize`), horizontal or vertical; `unit`, `decimals`, `showValue` draws `valueText` | arrows one step (1 % without `stepSize`), PgUp/PgDn ten, Home/End the ends; `moved()` for every user change; Slider named by `label`, value interface, described by `valueText` |
+| `SuiLevelMeter` | live level (`level`, `from`..`to`, default -60..0 dB) in ok / warn / danger zones (`warnLevel`, `dangerLevel`), peak hold (`peak`), a latched clip lamp (`clipped`, `reset()`), a scale and `valueText`; a pinned-level marker (`pinnedLevel`, `pinnedLabel`), user-movable with `pinEditable` (`pinMoved(level)`); horizontal or vertical | ProgressBar named by `label` with the level as its value, described by level, peak, pin and clipping; an editable pin is a Slider Tab stop: arrows by `pinStep`, PgUp/PgDn ten, Home/End, drag or click |
+| `SuiProgressBar` | determinate progress (`from`, `to`, `value`): `label` above, `valueText` beside (a percentage by default), `tone` `accent` / `ok` / `warn` / `danger`; `cancellable` adds a cancel button emitting `cancelRequested()` | ProgressBar named by `label`, described by `valueText`, Qt's value interface; the cancel button is a Tab stop named `cancelLabel` ("Cancel <label>") |
+| `SuiTable` | sortable, virtualised data table (`columns`, `rows`: a JS array or a Python list of dicts; 10,000 rows sort in ~20 ms and scroll at ~3 ms a frame); resizable columns (`columnWidths`, `columnResized`), row selection (`selectionMode` single / multiple / none, `selectedRows`, `currentRow`, `rowKey` keeps it across new rows), `format` / `tone` per column | Table named by `label`; the header is one Tab stop (←/→ between ColumnHeaders, Enter/Space sort, Ctrl+←/→ resize), the body another (↑/↓ PgUp/PgDn Home/End, Shift extends, Ctrl moves without selecting, Space toggles, Ctrl+A, Enter / double-click `activated(row)`); rows are ListItems named "Title: value, …" |
 | `SuiText` | text in a type style: `variant` `display` / `title` / `heading` / `subheading` / `section` / `label` / `body` / `caption` / `small` / `code`; `tone` overrides the colour; `tabular` digits | heading variants are Headings, the rest StaticText, named by the text; plain text |
 | `SuiIcon`, `SuiKbd` | built-in vector icons (`SuiIcon.names`) or a tinted image; a keyboard-key badge | icons are decorative unless given a `label` |
 
@@ -141,7 +150,8 @@ uv run python examples/gallery.py --theme dark --reduced-motion
 uv run python examples/gallery.py --screenshot DIR      # PNGs of every view x two themes
 ```
 
-The sidebar's first section switches pages: the mail sample, and text and controls.
+The sidebar's first section switches pages: the mail sample, typography, controls and a
+table of 10,000 rows.
 In the window: Tab / Shift+Tab, `j` / `k`, `1`–`8` (a toast), `/`, `?`.
 
 ### Typography
@@ -180,6 +190,121 @@ SuiText { text: "-12.4 dB"; tone: "warn"; tabular: true }
 - Everything else is `Text`'s: `elide`, `wrapMode`, `maximumLineCount`, alignment.
   Caller text is plain text (`textFormat` is `Text.PlainText`).
 
+### Form controls
+
+```qml
+SuiCheckBox { text: "Normalise loudness"; description: "Every take to -23 LUFS"; checked: true }
+SuiSwitch { text: "Monitor input"; onToggled: recorder.monitor = checked }
+Column {                                     // one exclusive group: the same parent
+    SuiRadioButton { text: "44.1 kHz" }
+    SuiRadioButton { text: "48 kHz"; checked: true }
+}
+SuiSelect { label: "Input"; model: devices; textRole: "name"; valueRole: "id"
+            onActivated: recorder.device = currentValue }
+SuiSlider { label: "Input gain"; from: -24; to: 24; stepSize: 0.5; unit: "dB"; showValue: true
+            onMoved: recorder.gain = value }
+```
+
+- They are Qt Quick Templates controls (`T.CheckBox`, `T.Switch`, `T.RadioButton`,
+  `T.ComboBox`, `T.Slider`), so their whole Qt API applies; listen to the user-change
+  signals (`toggled()`, `activated(index)`, `moved()`) to write values back.
+- Checked toggles fill with the accent and draw their mark in `SuiTheme.accentForeground`
+  (white on the light theme's accent, the page colour on the dark theme's; 4.5:1 or more,
+  tested); unchecked boxes use `--sui-field-border`, the 3:1 control boundary.
+- `SuiSelect` and `SuiSlider` need a `label` (their accessible name; the visible label
+  is a `SuiText { variant: "label" }` beside them) and warn without one.
+- Name a radio group with a container: `Accessible.role: Accessible.Grouping` and
+  `Accessible.name`, and a `SuiText` section heading.
+- Sizes are NATIVE-ONLY tokens: `indicatorSize`, `checkboxRadius`, `switchWidth`,
+  `switchHeight`, `switchThumbSize`, `sliderTrackHeight`, `sliderHandleSize`,
+  `menuMaxHeight`.
+
+### Progress
+
+```qml
+SuiProgressBar { label: "Transcribing take 3"; value: job.fraction }
+SuiProgressBar {
+    label: "Exporting"; from: 0; to: job.total; value: job.done
+    valueText: job.done + " of " + job.total + " files"
+    cancellable: job.running
+    onCancelRequested: job.cancel()
+}
+```
+
+Determinate only: Qt's `indeterminate` is not drawn (say what is happening in the
+label instead). The fill moves on `SuiTheme.duration`, so it jumps under reduced motion.
+`showLabel: false` and `showValue: false` leave the bare bar (`SuiTheme.progressHeight`).
+The app stops its task on `cancelRequested()` and clears `cancellable`.
+
+### Level meter
+
+```qml
+SuiLevelMeter { label: "Input level"; level: recorder.levelDb }          // dBFS, -60..0
+SuiLevelMeter {
+    label: "Microphone"; level: input.rmsDb
+    pinnedLevel: settings.gateDb; pinnedLabel: "Gate threshold"; pinEditable: true
+    onPinMoved: (level) => settings.gateDb = level
+}
+SuiLevelMeter { label: "Left"; orientation: Qt.Vertical; height: 180; level: left.db }
+```
+
+- `level` is in the meter's unit (`from`/`to`, default -60..0 dB; a linear 0..1 works
+  with `from: 0; to: 1; unit: ""`); `-Infinity` reads as silence (`-∞ dB`). The meter
+  draws each level as it arrives: no smoothing, so ballistics (VU, PPM) are the app's.
+  Nothing in it animates; reduced motion leaves it unchanged.
+- Zones: ok (`--sui-ok`) below `warnLevel` (-12), warn (`--sui-tone-yellow`) up to
+  `dangerLevel` (-3), danger (`--sui-tone-red`) above; the level reveals them.
+- Peak hold: `peak` holds the highest level for `SuiTheme.meterPeakHold` (1.5 s), then
+  drops to the level. Clip: `clipped` latches when the level reaches `clipLevel` (`to`)
+  and lights the lamp after the bar. `reset()` clears both.
+- The pinned-level marker is the app's (a target, a gate threshold; NaN hides it), drawn
+  in the accent with a halo. With `pinEditable` the user moves it: it is a Slider (Tab
+  stop, ring for keyboard focus) moved by the arrows (`pinStep`, default 1), PageUp /
+  PageDown (ten steps), Home/End, a drag or a click on the meter. `pinMoved(level)` fires
+  and `pinnedLevel` follows; write it back from the handler.
+- `showScale` (tick labels every `scaleStep`, or the smallest step whose labels do not
+  collide), `showValue` (`valueText`, `decimals`, `unit`), `showClip`, `peakHold`.
+
+### Table
+
+```qml
+SuiTable {
+    label: "Takes"
+    columns: [
+        { key: "name", title: "Take", width: 220 },
+        { key: "speaker", title: "Speaker" },
+        { key: "seconds", title: "Duration", width: 90, align: "right", format: (v) => v.toFixed(1) + " s" },
+        { key: "score", title: "Score", width: 80, align: "right", tone: (v) => v < 0.5 ? "danger" : "" }
+    ]
+    rows: takes                      // a JS array of objects, or a Python list of dicts
+    rowKey: "id"                     // keeps selection and current row when rows are replaced
+    selectionMode: "multiple"
+    onActivated: (row) => openTake(rows[row])
+}
+```
+
+- Rows are plain objects; a column shows `row[key]`, through `format(value, row)` when
+  given and in the colour of `tone(value, row)` (a `SuiText` tone) when given. Column
+  fields: `key`, `title`, `width` (`SuiTheme.tableColumnWidth`), `minWidth` / `maxWidth`
+  (`tableMinColumnWidth` / `tableMaxColumnWidth`), `align` (`right` cells use tabular
+  digits), `sortable`, `resizable`. The last column fills the view (`fillLastColumn`).
+- Every row number in the API (`currentRow`, `selectedRows`, `activated(row)`,
+  `select([...])`, `setCurrentRow`, `positionViewAtRow`, `cellText(row, key)`) is an
+  index into `rows`, whatever the sort.
+- Sorting (`sortKey`, `sortOrder`, `sortBy(key[, order])`) runs in JS over an index
+  permutation: numbers as numbers, other values as case-insensitive text, empty values
+  last, ties in `rows` order. Qt 6.10's `SortFilterProxyModel` takes 1–1.6 s per sort
+  over a Python model of 10,000 rows (every comparison calls Python), and does not
+  accept JS arrays; the JS sort takes about 20 ms.
+- Only the rows near the view exist (a `ListView` with `reuseItems`): 44 delegates for
+  10,000 rows in a 1000 x 700 window; replace `rows` to update (10,000 dicts convert in
+  about 80 ms).
+- `columnWidths` (`{ key: width }`) is the user's sizing: bind it to settings to restore
+  it, and save on `columnResized(key, width)`; `resetColumnWidth(key)` (double-click a
+  header edge) returns to the column's `width`.
+- Scroll bars (internal `SuiScrollBar`) show while the content overflows; Left/Right
+  on the body scroll sideways and the header follows.
+
 ### Theme and motion
 
 `SuiTheme` is a singleton with every registry token as a property (`--sui-text-strong`
@@ -203,7 +328,7 @@ is `SuiTheme.textStrong`; `SuiTheme.registry` maps CSS names to property names).
   `{ offsetX, offsetY, blur, spread, color }` for `MultiEffect`.
 - Native-only tokens (not in the registry) live in the clearly marked NATIVE-ONLY
   section of `tools/gen_tokens.py` and are generated into `SuiTheme.qml`: focus ring,
-  control metrics and layout defaults, type scale and text styles (`textStyles`,
+  control metrics (with `accentForeground`) and layout defaults, type scale and text styles (`textStyles`,
   `textStyle(variant)`, `textColor(tone)`), the bucket palette, tone helpers
   (`toneBase`, `toneText`, `toneFill`, `toneBorder`, `statusColor`), `monoFamily` and
   `alpha(color, amount)`.

@@ -61,6 +61,43 @@ SPECS: dict[str, Spec] = {
     ),
     "SuiChip": Spec('SuiChip { objectName: "subject"; x: 40; y: 40; text: "Receipts"; tone: "bucket1"; dot: true }',
                     R.StaticText, "Receipts"),
+    "SuiCheckBox": Spec(
+        'SuiCheckBox { objectName: "subject"; x: 40; y: 40; text: "Normalise"; description: "To -23 LUFS"; checked: true }',
+        R.CheckBox, "Normalise", True, "subject",
+    ),
+    "SuiSwitch": Spec(
+        'SuiSwitch { objectName: "subject"; x: 40; y: 40; text: "Monitor input"; checked: true }',
+        R.CheckBox, "Monitor input", True, "subject",
+    ),
+    "SuiRadioButton": Spec(
+        'SuiRadioButton { objectName: "subject"; x: 40; y: 40; text: "48 kHz"; checked: true }',
+        R.RadioButton, "48 kHz", True, "subject",
+    ),
+    "SuiSelect": Spec(
+        'SuiSelect { objectName: "subject"; x: 40; y: 40; label: "Input"; model: ["Desk microphone", "Headset"] }',
+        R.ComboBox, "Input", True, "subject",
+    ),
+    "SuiSlider": Spec(
+        'SuiSlider { objectName: "subject"; x: 40; y: 40; width: 240; label: "Gain"; from: -24; to: 24; value: 6;'
+        ' unit: "dB"; showValue: true }',
+        R.Slider, "Gain", True, "subject",
+    ),
+    "SuiProgressBar": Spec(
+        'SuiProgressBar { objectName: "subject"; x: 40; y: 40; width: 300; label: "Exporting"; value: 0.4;'
+        ' cancellable: true }',
+        R.ProgressBar, "Exporting", True, "cancelButton",
+    ),
+    "SuiLevelMeter": Spec(
+        'SuiLevelMeter { objectName: "subject"; x: 40; y: 40; width: 300; label: "Input level"; level: -18;'
+        ' pinnedLevel: -12; pinnedLabel: "Target"; pinEditable: true }',
+        R.ProgressBar, "Input level", True, "pin",
+    ),
+    "SuiTable": Spec(
+        'SuiTable { objectName: "subject"; x: 20; y: 20; width: 440; height: 200; label: "Takes";'
+        ' columns: [{ key: "name", title: "Take" }, { key: "score", title: "Score", align: "right" }];'
+        ' rows: [{ name: "take-1", score: 0.9 }, { name: "take-2", score: 0.4 }, { name: "take-3", score: 0.7 }] }',
+        R.Table, "Takes", True, "body",
+    ),
     "SuiText": Spec('SuiText { objectName: "subject"; x: 40; y: 40; text: "Recordings"; variant: "title" }',
                     R.Heading, "Recordings"),
     "SuiBadge": Spec('SuiBadge { objectName: "subject"; x: 40; y: 40; count: 120 }', R.StaticText, "99+"),
