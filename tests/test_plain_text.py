@@ -70,6 +70,21 @@ def _scene(port: int) -> str:
             id: col; width: parent.width; spacing: 4
             SuiButton {{ text: root.p }}
             SuiText {{ text: root.p; variant: "title" }}
+            SuiCheckBox {{ text: root.p; description: root.p }}
+            SuiSwitch {{ text: root.p; description: root.p }}
+            SuiRadioButton {{ text: root.p; description: root.p }}
+            SuiSelect {{ id: select; label: "x"; model: [root.p, root.p] }}
+            SuiSlider {{ label: "x"; showValue: true; valueText: root.p }}
+            SuiProgressBar {{ label: root.p; valueText: root.p; value: 0.5 }}
+            SuiLevelMeter {{ width: 300; label: root.p; valueText: root.p; unit: root.p; level: -20 }}
+            SuiTable {{ width: 300; height: 90; label: root.p
+                columns: [{{ key: "a", title: root.p }}, {{ key: "b", title: "b", format: (v) => root.p }}]
+                rows: [{{ a: root.p, b: 1 }}] }}
+            SuiTable {{ width: 300; height: 70; label: "empty"; columns: [{{ key: "a" }}]; placeholderText: root.p }}
+            SuiChart {{ width: 300; height: 160; label: root.p; xLabel: root.p; yLabel: root.p
+                series: [{{ name: root.p, y: [1, 2] }}, {{ name: root.p, kind: "area", y: [2, 1] }}]
+                markers: [{{ axis: "y", value: 1.5, label: root.p }}] }}
+            SuiHistogram {{ width: 300; height: 160; label: root.p; xLabel: root.p; values: [1, 2, 2, 3] }}
             SuiChip {{ text: root.p; tone: "bucket1" }}
             SuiBadge {{ text: root.p }}
             SuiKbd {{ text: root.p }}
@@ -91,7 +106,7 @@ def _scene(port: int) -> str:
     SuiSheet {{ id: sheet; title: root.p; description: root.p }}
     SuiShortcutOverlay {{ id: overlay
         shortcuts: [{{ group: root.p, keys: [root.p], description: root.p }}] }}
-    Component.onCompleted: {{ host.show(root.p); dialog.open(); sheet.open(); overlay.open() }}
+    Component.onCompleted: {{ host.show(root.p); dialog.open(); sheet.open(); overlay.open(); select.popup.open() }}
     """
 
 

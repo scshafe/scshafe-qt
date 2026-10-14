@@ -19,7 +19,10 @@ Window {
     // The gallery's pages (the sidebar's first section); the mail sample is the first.
     readonly property var pages: [
         { section: "Gallery", text: "Mail", iconName: "mail", page: "mail" },
-        { section: "Gallery", text: "Text and controls", iconName: "check", page: "controls" }
+        { section: "Gallery", text: "Typography", iconName: "text", page: "type" },
+        { section: "Gallery", text: "Controls", iconName: "sliders", page: "controls" },
+        { section: "Gallery", text: "Table", iconName: "table", page: "table" },
+        { section: "Gallery", text: "Charts", iconName: "chart", page: "charts" }
     ]
     property string page: "mail"
     function showPage(id) {
@@ -33,7 +36,42 @@ Window {
         toasts.show("Mail from this sender now goes to Family.", { title: "Sorted", tone: "ok", actionText: "Undo", timeout: 0 })
         inbox.forceActiveFocus(Qt.TabFocusReason)  // as if tabbed to: the ring shows
     }
+    function showType() { showPage("type") }
     function showControls() { showPage("controls") }
+    function showTable() {
+        showPage("table")
+        takesTable.sortBy("score", Qt.DescendingOrder)
+        takesTable.select([takesTable._order[1], takesTable._order[2], takesTable._order[3]])
+        takesTable.setCurrentRow(takesTable._order[3])
+        takesTable.forceActiveFocus(Qt.TabFocusReason)  // the rows, as if tabbed to: the ring shows
+    }
+    function showCharts() {
+        showPage("charts")
+        pitchChart._inspect(1.6)
+    }
+    readonly property var takes: makeTakes(10000)
+    // 10,000 made-up takes for the Table and Charts pages.
+    function makeTakes(count) {
+        const speakers = ["Ada", "Grace", "Alan", "Edsger", "Barbara", "Ken"]
+        const scripts = ["Rainbow passage", "Grandfather passage", "Digits 0-9", "Free speech", "Sentences 1-10"]
+        const out = []
+        let seed = 12345
+        const rand = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648
+        for (let i = 0; i < count; ++i) {
+            out.push({
+                id: i,
+                take: "take-" + String(i + 1).padStart(5, "0"),
+                speaker: speakers[Math.floor(rand() * speakers.length)],
+                script: scripts[Math.floor(rand() * scripts.length)],
+                seconds: 3 + (rand() + rand() + rand()) * 12,
+                snr: Math.round((8 + rand() * 32) * 10) / 10,
+                score: Math.round(rand() * 1000) / 1000,
+                recorded: "2026-" + String(1 + Math.floor(rand() * 9)).padStart(2, "0") + "-"
+                          + String(1 + Math.floor(rand() * 28)).padStart(2, "0")
+            })
+        }
+        return out
+    }
     function openDialog() { ruleDialog.open() }
     function openSheet() { senderSheet.open() }
     function openShortcuts() { shortcutOverlay.open() }
@@ -189,13 +227,13 @@ Window {
                 }
 
                 Flickable {
-                    objectName: "controlsPage"
-                    contentHeight: controlsColumn.implicitHeight + 2 * SuiTheme.spaceXl
+                    objectName: "typePage"
+                    contentHeight: typeColumn.implicitHeight + 2 * SuiTheme.spaceXl
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
 
                     ColumnLayout {
-                        id: controlsColumn
+                        id: typeColumn
                         x: SuiTheme.spaceXl
                         y: SuiTheme.spaceXl
                         width: Math.min(parent.width - 2 * SuiTheme.spaceXl, 720)
@@ -253,6 +291,350 @@ Window {
                             SuiText { text: "Input"; variant: "label" }
                             SuiText { text: "-12.4 dB"; variant: "subheading"; tabular: true }
                             SuiText { text: "peak -3.1 dB"; tone: "warn"; tabular: true }
+                        }
+                    }
+                }
+
+                Flickable {
+                    objectName: "controlsPage"
+                    contentHeight: controlsColumn.implicitHeight + 2 * SuiTheme.spaceXl
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    ColumnLayout {
+                        id: controlsColumn
+                        x: SuiTheme.spaceXl
+                        y: SuiTheme.spaceXl
+                        width: Math.min(parent.width - 2 * SuiTheme.spaceXl, 720)
+                        spacing: SuiTheme.spaceLg
+
+                        SuiText { text: "Form controls"; variant: "title" }
+                        GridLayout {
+                            objectName: "formControls"
+                            columns: 2
+                            columnSpacing: SuiTheme.space2xl
+                            rowSpacing: SuiTheme.spaceMd
+                            Layout.fillWidth: true
+
+                            ColumnLayout {
+                                Layout.alignment: Qt.AlignTop
+                                Layout.fillWidth: true
+                                spacing: SuiTheme.spaceMd
+                                SuiText { text: "Processing"; variant: "section" }
+                                SuiCheckBox {
+                                    objectName: "normaliseCheck"
+                                    Layout.fillWidth: true
+                                    text: "Normalise loudness"
+                                    description: "Every take to -23 LUFS."
+                                    checked: true
+                                }
+                                SuiCheckBox { text: "Trim silence"; description: "Some takes"; tristate: true; checkState: Qt.PartiallyChecked }
+                                SuiCheckBox { text: "Keep raw files"; enabled: false }
+                                SuiSwitch {
+                                    objectName: "monitorSwitch"
+                                    Layout.fillWidth: true
+                                    text: "Monitor input"
+                                    description: "Hear the microphone while recording."
+                                    checked: true
+                                }
+                                SuiSwitch { text: "Noise gate" }
+                            }
+                            ColumnLayout {
+                                Layout.alignment: Qt.AlignTop
+                                Layout.fillWidth: true
+                                spacing: SuiTheme.spaceMd
+                                SuiText { text: "Sample rate"; variant: "section" }
+                                Column {
+                                    objectName: "rateGroup"
+                                    spacing: SuiTheme.spaceXs
+                                    Accessible.role: Accessible.Grouping
+                                    Accessible.name: "Sample rate"
+                                    SuiRadioButton { text: "16 kHz"; description: "For speech models" }
+                                    SuiRadioButton { text: "44.1 kHz" }
+                                    SuiRadioButton { text: "48 kHz"; checked: true }
+                                }
+                                SuiText { text: "Input"; variant: "label" }
+                                SuiSelect {
+                                    objectName: "inputSelect"
+                                    label: "Input"
+                                    model: ["Desk microphone", "Headset", "Line in", "System audio"]
+                                }
+                                SuiText { text: "Gain"; variant: "label" }
+                                SuiSlider {
+                                    objectName: "gainSlider"
+                                    Layout.fillWidth: true
+                                    label: "Input gain"
+                                    from: -24
+                                    to: 24
+                                    stepSize: 0.5
+                                    value: 6
+                                    unit: "dB"
+                                    showValue: true
+                                }
+                            }
+                        }
+
+                        SuiText { text: "Progress"; variant: "title"; Layout.topMargin: SuiTheme.spaceSm }
+                        ColumnLayout {
+                            objectName: "progressDemo"
+                            Layout.fillWidth: true
+                            spacing: SuiTheme.spaceMd
+                            SuiProgressBar {
+                                objectName: "transcribeProgress"
+                                Layout.fillWidth: true
+                                label: "Transcribing session 12"
+                                value: 0.42
+                            }
+                            SuiProgressBar {
+                                id: exportProgress
+                                objectName: "exportProgress"
+                                Layout.fillWidth: true
+                                label: "Exporting takes"
+                                from: 0
+                                to: 12
+                                value: 5
+                                valueText: Math.round(value) + " of 12 files"
+                                tone: value >= to ? "ok" : "accent"
+                                cancellable: exportTimer.running
+                                onCancelRequested: {
+                                    exportTimer.stop()
+                                    toasts.show("Export cancelled at " + valueText, { tone: "warn" })
+                                }
+                            }
+                            RowLayout {
+                                spacing: SuiTheme.spaceSm
+                                SuiButton {
+                                    objectName: "exportButton"
+                                    text: exportTimer.running ? "Exporting…" : "Export again"
+                                    enabled: !exportTimer.running
+                                    onClicked: {
+                                        exportProgress.value = 0
+                                        exportTimer.start()
+                                    }
+                                }
+                                SuiText { text: "The cancel button shows while the export runs."; variant: "caption" }
+                            }
+                            Timer {
+                                id: exportTimer
+                                interval: 250
+                                repeat: true
+                                onTriggered: {
+                                    exportProgress.value += 0.5
+                                    if (exportProgress.value >= exportProgress.to)
+                                        stop()
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.topMargin: SuiTheme.spaceSm
+                            spacing: SuiTheme.spaceMd
+                            SuiText { text: "Level meter"; variant: "title"; Layout.fillWidth: true }
+                            SuiSwitch {
+                                id: simulateInput
+                                objectName: "simulateInput"
+                                text: "Simulate input"
+                            }
+                            SuiButton {
+                                text: "Reset peaks"
+                                variant: "secondary"
+                                onClicked: { inputMeter.reset(); gateMeter.reset(); leftMeter.reset(); rightMeter.reset() }
+                            }
+                        }
+                        RowLayout {
+                            objectName: "meterDemo"
+                            Layout.fillWidth: true
+                            spacing: SuiTheme.spaceXl
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignTop
+                                spacing: SuiTheme.spaceMd
+                                SuiText { text: "Input"; variant: "label" }
+                                SuiLevelMeter {
+                                    id: inputMeter
+                                    objectName: "inputMeter"
+                                    Layout.fillWidth: true
+                                    label: "Input level"
+                                    level: -18.4
+                                    pinnedLevel: -12
+                                    pinnedLabel: "Target level"
+                                }
+                                SuiText { text: "Noise gate"; variant: "label" }
+                                SuiLevelMeter {
+                                    id: gateMeter
+                                    objectName: "gateMeter"
+                                    Layout.fillWidth: true
+                                    label: "Gate input"
+                                    level: inputMeter.level - 6
+                                    pinnedLevel: -42
+                                    pinnedLabel: "Gate threshold"
+                                    pinEditable: true
+                                    onPinMoved: (level) => gateText.text = "Gate opens at " + level.toFixed(0) + " dB"
+                                }
+                                SuiText { id: gateText; variant: "caption"; text: "Drag the knob, or Tab to it and use the arrows." }
+                            }
+                            Row {
+                                objectName: "stereoMeters"
+                                Layout.alignment: Qt.AlignTop
+                                spacing: SuiTheme.spaceSm
+                                SuiLevelMeter {
+                                    id: leftMeter
+                                    height: 180
+                                    orientation: Qt.Vertical
+                                    label: "Left"
+                                    showValue: false
+                                    level: inputMeter.level + 1.5
+                                }
+                                SuiLevelMeter {
+                                    id: rightMeter
+                                    height: 180
+                                    orientation: Qt.Vertical
+                                    label: "Right"
+                                    showValue: false
+                                    level: inputMeter.level - 2
+                                }
+                            }
+                            // A made-up voice: a slow swell with syllable bursts and an occasional clip.
+                            Timer {
+                                property real t: 0
+                                interval: 50
+                                repeat: true
+                                running: simulateInput.checked
+                                onTriggered: {
+                                    t += 0.05
+                                    const swell = -24 + 10 * Math.sin(t * 0.7)
+                                    const burst = 9 * Math.max(0, Math.sin(t * 9)) * Math.max(0, Math.sin(t * 1.3))
+                                    inputMeter.level = Math.min(0, swell + burst + 2 * Math.random())
+                                }
+                            }
+                        }
+                    }
+                }
+
+                ColumnLayout {
+                    objectName: "tablePage"
+                    spacing: 0
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        Layout.margins: SuiTheme.spaceMd
+                        spacing: SuiTheme.spaceMd
+                        SuiText { text: "Takes"; variant: "heading" }
+                        SuiText {
+                            objectName: "tableStatus"
+                            Layout.fillWidth: true
+                            variant: "caption"
+                            tabular: true
+                            text: takesTable.rowCount.toLocaleString() + " takes, " + takesTable.selectedRows.length
+                                  + " selected" + (takesTable.sortKey !== "" ? ", sorted by " + takesTable.sortKey : "")
+                        }
+                        SuiSelect {
+                            label: "Selection"
+                            model: ["single", "multiple", "none"]
+                            currentIndex: 1
+                            onActivated: takesTable.selectionMode = currentText
+                        }
+                        SuiButton { text: "Reset widths"; variant: "secondary"; onClicked: takesTable.columnWidths = ({}) }
+                    }
+                    SuiTable {
+                        id: takesTable
+                        objectName: "takesTable"
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        label: "Takes"
+                        rows: root.takes
+                        rowKey: "id"
+                        selectionMode: "multiple"
+                        columns: [
+                            { key: "take", title: "Take", width: 110 },
+                            { key: "speaker", title: "Speaker", width: 100 },
+                            { key: "script", title: "Script", width: 170 },
+                            { key: "seconds", title: "Duration", width: 90, align: "right", format: (v) => v.toFixed(1) + " s" },
+                            { key: "snr", title: "SNR", width: 80, align: "right", format: (v) => v.toFixed(1) + " dB",
+                              tone: (v) => v < 12 ? "warn" : "" },
+                            { key: "score", title: "Score", width: 80, align: "right", format: (v) => v.toFixed(3),
+                              tone: (v) => v < 0.2 ? "danger" : v > 0.9 ? "ok" : "" },
+                            { key: "recorded", title: "Recorded", width: 110 }
+                        ]
+                        onActivated: (row) => toasts.show("Opened " + rows[row].take, { tone: "info" })
+                    }
+                }
+
+                Flickable {
+                    id: chartsPage
+                    objectName: "chartsPage"
+                    contentHeight: chartsGrid.implicitHeight + 2 * SuiTheme.spaceXl
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    // A made-up pitch contour: a phrase of 4 s at 100 points a second.
+                    readonly property var time: Array.from({ length: 400 }, (_, i) => i / 100)
+                    readonly property var pitch: time.map((t, i) => i >= 205 && i < 230 ? NaN
+                        : 165 + 35 * Math.sin(t * 1.9) * Math.exp(-t / 5) + 9 * Math.sin(t * 13))
+                    readonly property var sample: root.takes.slice(0, 1500)
+
+                    GridLayout {
+                        id: chartsGrid
+                        x: SuiTheme.spaceXl
+                        y: SuiTheme.spaceXl
+                        width: parent.width - 2 * SuiTheme.spaceXl
+                        columns: 2
+                        columnSpacing: SuiTheme.spaceXl
+                        rowSpacing: SuiTheme.spaceLg
+
+                        SuiText { text: "Charts"; variant: "title"; Layout.columnSpan: 2 }
+                        SuiChart {
+                            id: pitchChart
+                            objectName: "pitchChart"
+                            Layout.columnSpan: 2
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 240
+                            label: "Pitch, take 12"
+                            xLabel: "Time (s)"
+                            yLabel: "F0 (Hz)"
+                            series: [
+                                { kind: "band", name: "Speaker range", x: chartsPage.time,
+                                  lower: chartsPage.time.map(t => 132 + 30 * Math.sin(t * 1.9) * Math.exp(-t / 5)),
+                                  upper: chartsPage.time.map(t => 198 + 30 * Math.sin(t * 1.9) * Math.exp(-t / 5)) },
+                                { kind: "line", name: "F0", x: chartsPage.time, y: chartsPage.pitch },
+                                { kind: "scatter", name: "Onsets", x: [0.42, 1.18, 2.51, 3.3],
+                                  y: [176, 181, 158, 149], tone: "warn" }
+                            ]
+                            markers: [{ axis: "y", value: 180, label: "Target" }]
+                        }
+                        SuiChart {
+                            objectName: "energyChart"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 200
+                            label: "Energy"
+                            xLabel: "Time (s)"
+                            yLabel: "dB"
+                            series: [{ kind: "area", name: "RMS", x: chartsPage.time, baseline: -60, tone: 2,
+                                       y: chartsPage.time.map((t, i) => -38 + 14 * Math.abs(Math.sin(t * 2.2)) + 3 * Math.sin(i)) }]
+                        }
+                        SuiChart {
+                            objectName: "scatterChart"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 200
+                            label: "Score by SNR, 1,500 takes"
+                            xLabel: "SNR (dB)"
+                            yLabel: "Score"
+                            xNice: true
+                            series: [{ kind: "scatter", name: "Takes", size: 4, tone: 8,
+                                       x: chartsPage.sample.map(t => t.snr), y: chartsPage.sample.map(t => t.score) }]
+                        }
+                        SuiHistogram {
+                            objectName: "durationHistogram"
+                            Layout.columnSpan: 2
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 200
+                            label: "Take durations, 10,000 takes"
+                            xLabel: "Duration (s)"
+                            values: root.takes.map(t => t.seconds)
+                            binWidth: 2.5
+                            tone: 3
                         }
                     }
                 }

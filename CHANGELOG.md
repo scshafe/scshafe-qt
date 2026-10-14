@@ -7,6 +7,163 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.8.0 — 2026-10-13
+
+Charts. Additive; no existing API changes.
+
+- **`SuiChart`**: an x/y chart of `series` of kind `line`, `area`, `band`,
+  `scatter` and `bars`, from columns (JS arrays or Python lists; null / NaN
+  breaks a line, area or band). Lines, areas and bands are Qt Quick Shapes
+  (`PathMultiline`, curve renderer), scatter a Canvas; no Qt Graphs, so the
+  only dependency stays `PySide6-Essentials`. Dense lines are reduced to
+  min/max per pixel column (100,000 points draw as ~1,500 vertices, spikes
+  kept). Nice axes (automatic or `xMin` / `xMax` / `yMin` / `yMax`; `xNice`,
+  `yNice`, `yIntegers`; `xFormat` / `yFormat`; `xLabel`, `yLabel`; grids),
+  dashed `markers` with labels, a legend for two or more named series,
+  series colours from the bucket palette or a `tone`.
+  The readout shows each series' value at the x under the pointer (the point
+  for scatter, the bin for bars). The chart is a Tab stop when it has data:
+  Left/Right, PageUp/PageDown and Home/End step through x and announce the
+  readout; Escape hides it (`inspectedX`, `readoutText`). Accessible: Chart
+  named by `label`, described by a summary of the series (or `description`).
+- **`SuiHistogram`**: a `SuiChart` that bins `values` into `binCount` bins
+  (Sturges by default) or `binWidth` bins over `from`..`to`, with `density`
+  shares, `bins` and a distribution summary as its description.
+- `SuiTheme` NATIVE-ONLY: `chartLineWidth`, `chartFillAlpha`,
+  `chartPointSize`, `chartTickLength`.
+- `SuiIcon`: built-in `chart` icon.
+- Gallery: a Charts page (pitch with a speaker band, onsets and a target;
+  energy area; score by SNR over 1,500 takes; a histogram of 10,000
+  durations); screenshot view `charts`.
+- Tests: `tests/test_charts.py` (nice axes, limits and formats, integer
+  ticks, line mapping and gaps, 100,000-point decimation keeping extremes,
+  area and band polygons, colours by tone in both themes, scatter pixels,
+  bars, markers and legend, no data, readout by pointer (series and scatter)
+  and keyboard, the accessible summary, histogram binning, density and
+  description), the shared component contract, QML TestCases, the
+  plain-text payload and the wheel smoke scene (32 components).
+
+## 0.7.0 — 2026-10-13
+
+Table. Additive; no existing API changes.
+
+- **`SuiTable`**: a sortable, virtualised data table over `rows` (a JS array
+  of objects, or a Python list of dicts) and `columns` (`key`, `title`,
+  `width`, `minWidth`, `maxWidth`, `align`, `sortable`, `resizable`,
+  `format(value, row)`, `tone(value, row)`). 10,000 rows: about 80 ms to
+  assign from Python, about 20 ms to sort, about 3 ms a frame to scroll
+  (software renderer), 44 delegates in a 1000 x 700 view.
+  - Sorting by header click or keyboard, or `sortKey` / `sortOrder` /
+    `sortBy()`: numbers numerically, text case-insensitively, empty values
+    last, stable.
+  - Columns resize by dragging a header edge or Ctrl+Left/Right on a focused
+    header; double-click resets; `columnWidths` and `columnResized(key,
+    width)` persist them; the last column fills the view.
+  - Selection (`selectionMode` single / multiple / none): click, Ctrl+click,
+    Shift+click, and the keyboard (arrows, PageUp/PageDown, Home/End, Shift
+    ranges, Ctrl moves, Space toggles, Ctrl+A); `selectedRows`, `currentRow`,
+    `select()`, `selectAll()`, `clearSelection()`; `rowKey` keeps the
+    selection when `rows` is replaced. Enter / double-click emit
+    `activated(row)`. Row numbers are indices into `rows`.
+  - Focus: the header and the body are one Tab stop each, with the
+    keyboard-only ring; `forceActiveFocus()` focuses the body.
+  - Accessible: Table named by `label`, ColumnHeaders described by their
+    sort, rows as ListItems named "Title: value, ..." with their selection.
+- Internal `SuiScrollBar` (themed `T.ScrollBar`).
+- `SuiTheme` NATIVE-ONLY: `tableRowHeight`, `tableColumnWidth`,
+  `tableMinColumnWidth`, `tableMaxColumnWidth`, `scrollBarSize`.
+- `SuiIcon`: built-in `table` icon.
+- Gallery: a Table page with 10,000 made-up takes; screenshot view `table`.
+- Tests: `tests/test_table.py` (virtualisation over 10,000 rows, sort speed
+  and semantics, header sorting, pointer and keyboard selection, activation,
+  selection across sorts and new rows, column resizing by drag, keyboard and
+  reset, clamping and fill, horizontal scrolling, cell format, tone and
+  plain text, accessibility, the placeholder), the shared component
+  contract, a QML TestCase, the plain-text payload and the wheel smoke scene
+  (30 components).
+
+## 0.6.0 — 2026-10-13
+
+Level meter. Additive; no existing API changes.
+
+- **`SuiLevelMeter`**: a live level in the meter's unit (`from`..`to`,
+  default -60..0 dB; -Infinity is silence), revealing ok / warn / danger
+  zones (`warnLevel`, `dangerLevel`), drawn as it arrives (no smoothing, no
+  animation). Peak hold (`peak`, `SuiTheme.meterPeakHold`), a clip lamp that
+  latches at `clipLevel` (`clipped`, `reset()`), a tick scale (`scaleStep` or
+  automatic without collisions) and `valueText`. The pinned-level marker
+  (`pinnedLevel`, `pinnedLabel`) is the app's; with `pinEditable` it is a
+  Slider the user moves by keyboard, drag or click, emitting
+  `pinMoved(level)`. Horizontal or vertical. Accessible: a ProgressBar named
+  by `label` with the level as its value and the peak, pin and clipping in
+  its description; the editable pin is a Slider.
+- `SuiTheme` NATIVE-ONLY: `meterThickness`, `meterPinSize`, `meterPeakHold`.
+- Gallery: a Level meter section on the Controls page (a target marker, an
+  editable gate threshold, a stereo pair; "Simulate input" drives them).
+- Tests: `tests/test_meter.py` (fill and range, zones in both themes, value
+  text and silence, peak hold timing, clip latch and reset, accessibility,
+  fixed and editable pins by keyboard and pointer, the scale, vertical
+  meters, nothing animating), the shared component contract, a QML
+  TestCase, the plain-text payload and the wheel smoke scene (29 components).
+
+## 0.5.0 — 2026-10-13
+
+Progress. Additive; no existing API changes.
+
+- **`SuiProgressBar`**: determinate progress (Qt's ProgressBar: `from`, `to`,
+  `value`, `position`) with `label` above the bar and `valueText` beside it
+  (the percentage by default; tabular digits), `showLabel` / `showValue`,
+  and `tone` (`accent`, `ok`, `warn`, `danger`). `cancellable` adds a cancel
+  button beside the bar, a Tab stop named `cancelLabel` ("Cancel <label>"),
+  that emits `cancelRequested()`. The fill moves on `SuiTheme.duration`
+  (instant under reduced motion). Accessible: ProgressBar named by `label`,
+  described by `valueText`, with Qt's value interface. `indeterminate` is
+  not drawn.
+- `SuiTheme` NATIVE-ONLY: `progressHeight`.
+- Gallery: a Progress section on the Controls page, with an export you can
+  start and cancel.
+- Tests: `tests/test_progress.py` (range and fill, motion and reduced
+  motion, value text, tones in both themes, cancel by keyboard, Tab order,
+  accessibility), the shared component contract, a QML TestCase, the
+  plain-text payload and the wheel smoke scene (28 components).
+
+## 0.4.0 — 2026-10-13
+
+Form controls. Additive; no existing API changes.
+
+- **`SuiCheckBox`**: a labelled checkbox (the web's CheckboxField) with
+  optional `description` help text, `tristate`, and `label` for a box without
+  visible text.
+- **`SuiSwitch`**: an on/off switch with `description`; the thumb slides on
+  `SuiTheme.duration` (instant under reduced motion) and can be dragged.
+- **`SuiRadioButton`**: one choice of an exclusive group (same parent or a
+  `ButtonGroup`). The group is one Tab stop (its checked button, else the
+  first) and the arrow keys move and check, wrapping, as browsers do.
+- **`SuiSelect`**: a drop-down (`ComboBox`) over strings or objects
+  (`textRole` / `valueRole`), `placeholderText` for no choice, as wide as its
+  widest option; keyboard, type-ahead and pointer choice; options are
+  ListItems.
+- **`SuiSlider`**: horizontal or vertical; arrows step (1 % of the range
+  without `stepSize`), PageUp/PageDown ten steps, Home/End the ends, each
+  emitting `moved()`; `unit`, `decimals` and `showValue` draw `valueText`
+  beside the track (in a fixed `valueWidth`).
+- Every control is keyboard-focusable with the keyboard-only ring, has its
+  accessible role and name (`SuiSelect` and `SuiSlider` warn without a
+  `label`) and animates only on `SuiTheme.duration`.
+- `SuiTheme` NATIVE-ONLY: `indicatorSize`, `checkboxRadius`, `switchWidth`,
+  `switchHeight`, `switchThumbSize`, `sliderTrackHeight`, `sliderHandleSize`,
+  `menuMaxHeight`, and `accentForeground` (marks on an accent fill; 4.5:1 or
+  more on the accent and its hover colour in both themes, tested).
+- `SuiIcon`: built-in `text` and `sliders` icons.
+- Internal `SuiToggleLabel` lays out a toggle's label and help text.
+- Gallery: the pages are now Mail, Typography and Controls (every form
+  control); screenshot views `type` and `controls`.
+- Tests: `tests/test_forms.py` (keyboard, pointer, tristate, the radio
+  group's Tab stop and arrows, the select popup with string and object
+  models, slider steps, vertical sliders, accessibility, colours in both
+  themes, reduced motion), the shared component contract, QML TestCases, the
+  plain-text payload and the wheel smoke scene (27 components).
+
 ## 0.3.0 — 2026-10-13
 
 Typography: the type scale as a component. Additive; no existing API changes.
