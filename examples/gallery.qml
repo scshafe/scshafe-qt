@@ -19,7 +19,8 @@ Window {
     // The gallery's pages (the sidebar's first section); the mail sample is the first.
     readonly property var pages: [
         { section: "Gallery", text: "Mail", iconName: "mail", page: "mail" },
-        { section: "Gallery", text: "Text and controls", iconName: "check", page: "controls" }
+        { section: "Gallery", text: "Typography", iconName: "text", page: "type" },
+        { section: "Gallery", text: "Controls", iconName: "sliders", page: "controls" }
     ]
     property string page: "mail"
     function showPage(id) {
@@ -33,6 +34,7 @@ Window {
         toasts.show("Mail from this sender now goes to Family.", { title: "Sorted", tone: "ok", actionText: "Undo", timeout: 0 })
         inbox.forceActiveFocus(Qt.TabFocusReason)  // as if tabbed to: the ring shows
     }
+    function showType() { showPage("type") }
     function showControls() { showPage("controls") }
     function openDialog() { ruleDialog.open() }
     function openSheet() { senderSheet.open() }
@@ -189,13 +191,13 @@ Window {
                 }
 
                 Flickable {
-                    objectName: "controlsPage"
-                    contentHeight: controlsColumn.implicitHeight + 2 * SuiTheme.spaceXl
+                    objectName: "typePage"
+                    contentHeight: typeColumn.implicitHeight + 2 * SuiTheme.spaceXl
                     clip: true
                     boundsBehavior: Flickable.StopAtBounds
 
                     ColumnLayout {
-                        id: controlsColumn
+                        id: typeColumn
                         x: SuiTheme.spaceXl
                         y: SuiTheme.spaceXl
                         width: Math.min(parent.width - 2 * SuiTheme.spaceXl, 720)
@@ -253,6 +255,224 @@ Window {
                             SuiText { text: "Input"; variant: "label" }
                             SuiText { text: "-12.4 dB"; variant: "subheading"; tabular: true }
                             SuiText { text: "peak -3.1 dB"; tone: "warn"; tabular: true }
+                        }
+                    }
+                }
+
+                Flickable {
+                    objectName: "controlsPage"
+                    contentHeight: controlsColumn.implicitHeight + 2 * SuiTheme.spaceXl
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    ColumnLayout {
+                        id: controlsColumn
+                        x: SuiTheme.spaceXl
+                        y: SuiTheme.spaceXl
+                        width: Math.min(parent.width - 2 * SuiTheme.spaceXl, 720)
+                        spacing: SuiTheme.spaceLg
+
+                        SuiText { text: "Form controls"; variant: "title" }
+                        GridLayout {
+                            objectName: "formControls"
+                            columns: 2
+                            columnSpacing: SuiTheme.space2xl
+                            rowSpacing: SuiTheme.spaceMd
+                            Layout.fillWidth: true
+
+                            ColumnLayout {
+                                Layout.alignment: Qt.AlignTop
+                                Layout.fillWidth: true
+                                spacing: SuiTheme.spaceMd
+                                SuiText { text: "Processing"; variant: "section" }
+                                SuiCheckBox {
+                                    objectName: "normaliseCheck"
+                                    Layout.fillWidth: true
+                                    text: "Normalise loudness"
+                                    description: "Every take to -23 LUFS."
+                                    checked: true
+                                }
+                                SuiCheckBox { text: "Trim silence"; description: "Some takes"; tristate: true; checkState: Qt.PartiallyChecked }
+                                SuiCheckBox { text: "Keep raw files"; enabled: false }
+                                SuiSwitch {
+                                    objectName: "monitorSwitch"
+                                    Layout.fillWidth: true
+                                    text: "Monitor input"
+                                    description: "Hear the microphone while recording."
+                                    checked: true
+                                }
+                                SuiSwitch { text: "Noise gate" }
+                            }
+                            ColumnLayout {
+                                Layout.alignment: Qt.AlignTop
+                                Layout.fillWidth: true
+                                spacing: SuiTheme.spaceMd
+                                SuiText { text: "Sample rate"; variant: "section" }
+                                Column {
+                                    objectName: "rateGroup"
+                                    spacing: SuiTheme.spaceXs
+                                    Accessible.role: Accessible.Grouping
+                                    Accessible.name: "Sample rate"
+                                    SuiRadioButton { text: "16 kHz"; description: "For speech models" }
+                                    SuiRadioButton { text: "44.1 kHz" }
+                                    SuiRadioButton { text: "48 kHz"; checked: true }
+                                }
+                                SuiText { text: "Input"; variant: "label" }
+                                SuiSelect {
+                                    objectName: "inputSelect"
+                                    label: "Input"
+                                    model: ["Desk microphone", "Headset", "Line in", "System audio"]
+                                }
+                                SuiText { text: "Gain"; variant: "label" }
+                                SuiSlider {
+                                    objectName: "gainSlider"
+                                    Layout.fillWidth: true
+                                    label: "Input gain"
+                                    from: -24
+                                    to: 24
+                                    stepSize: 0.5
+                                    value: 6
+                                    unit: "dB"
+                                    showValue: true
+                                }
+                            }
+                        }
+
+                        SuiText { text: "Progress"; variant: "title"; Layout.topMargin: SuiTheme.spaceSm }
+                        ColumnLayout {
+                            objectName: "progressDemo"
+                            Layout.fillWidth: true
+                            spacing: SuiTheme.spaceMd
+                            SuiProgressBar {
+                                objectName: "transcribeProgress"
+                                Layout.fillWidth: true
+                                label: "Transcribing session 12"
+                                value: 0.42
+                            }
+                            SuiProgressBar {
+                                id: exportProgress
+                                objectName: "exportProgress"
+                                Layout.fillWidth: true
+                                label: "Exporting takes"
+                                from: 0
+                                to: 12
+                                value: 5
+                                valueText: Math.round(value) + " of 12 files"
+                                tone: value >= to ? "ok" : "accent"
+                                cancellable: exportTimer.running
+                                onCancelRequested: {
+                                    exportTimer.stop()
+                                    toasts.show("Export cancelled at " + valueText, { tone: "warn" })
+                                }
+                            }
+                            RowLayout {
+                                spacing: SuiTheme.spaceSm
+                                SuiButton {
+                                    objectName: "exportButton"
+                                    text: exportTimer.running ? "Exporting…" : "Export again"
+                                    enabled: !exportTimer.running
+                                    onClicked: {
+                                        exportProgress.value = 0
+                                        exportTimer.start()
+                                    }
+                                }
+                                SuiText { text: "The cancel button shows while the export runs."; variant: "caption" }
+                            }
+                            Timer {
+                                id: exportTimer
+                                interval: 250
+                                repeat: true
+                                onTriggered: {
+                                    exportProgress.value += 0.5
+                                    if (exportProgress.value >= exportProgress.to)
+                                        stop()
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            Layout.fillWidth: true
+                            Layout.topMargin: SuiTheme.spaceSm
+                            spacing: SuiTheme.spaceMd
+                            SuiText { text: "Level meter"; variant: "title"; Layout.fillWidth: true }
+                            SuiSwitch {
+                                id: simulateInput
+                                objectName: "simulateInput"
+                                text: "Simulate input"
+                            }
+                            SuiButton {
+                                text: "Reset peaks"
+                                variant: "secondary"
+                                onClicked: { inputMeter.reset(); gateMeter.reset(); leftMeter.reset(); rightMeter.reset() }
+                            }
+                        }
+                        RowLayout {
+                            objectName: "meterDemo"
+                            Layout.fillWidth: true
+                            spacing: SuiTheme.spaceXl
+
+                            ColumnLayout {
+                                Layout.fillWidth: true
+                                Layout.alignment: Qt.AlignTop
+                                spacing: SuiTheme.spaceMd
+                                SuiText { text: "Input"; variant: "label" }
+                                SuiLevelMeter {
+                                    id: inputMeter
+                                    objectName: "inputMeter"
+                                    Layout.fillWidth: true
+                                    label: "Input level"
+                                    level: -18.4
+                                    pinnedLevel: -12
+                                    pinnedLabel: "Target level"
+                                }
+                                SuiText { text: "Noise gate"; variant: "label" }
+                                SuiLevelMeter {
+                                    id: gateMeter
+                                    objectName: "gateMeter"
+                                    Layout.fillWidth: true
+                                    label: "Gate input"
+                                    level: inputMeter.level - 6
+                                    pinnedLevel: -42
+                                    pinnedLabel: "Gate threshold"
+                                    pinEditable: true
+                                    onPinMoved: (level) => gateText.text = "Gate opens at " + level.toFixed(0) + " dB"
+                                }
+                                SuiText { id: gateText; variant: "caption"; text: "Drag the knob, or Tab to it and use the arrows." }
+                            }
+                            Row {
+                                objectName: "stereoMeters"
+                                Layout.alignment: Qt.AlignTop
+                                spacing: SuiTheme.spaceSm
+                                SuiLevelMeter {
+                                    id: leftMeter
+                                    height: 180
+                                    orientation: Qt.Vertical
+                                    label: "Left"
+                                    showValue: false
+                                    level: inputMeter.level + 1.5
+                                }
+                                SuiLevelMeter {
+                                    id: rightMeter
+                                    height: 180
+                                    orientation: Qt.Vertical
+                                    label: "Right"
+                                    showValue: false
+                                    level: inputMeter.level - 2
+                                }
+                            }
+                            // A made-up voice: a slow swell with syllable bursts and an occasional clip.
+                            Timer {
+                                property real t: 0
+                                interval: 50
+                                repeat: true
+                                running: simulateInput.checked
+                                onTriggered: {
+                                    t += 0.05
+                                    const swell = -24 + 10 * Math.sin(t * 0.7)
+                                    const burst = 9 * Math.max(0, Math.sin(t * 9)) * Math.max(0, Math.sin(t * 1.3))
+                                    inputMeter.level = Math.min(0, swell + burst + 2 * Math.random())
+                                }
+                            }
                         }
                     }
                 }

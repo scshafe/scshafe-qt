@@ -7,6 +7,88 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.6.0 — 2026-10-13
+
+Level meter. Additive; no existing API changes.
+
+- **`SuiLevelMeter`**: a live level in the meter's unit (`from`..`to`,
+  default -60..0 dB; -Infinity is silence), revealing ok / warn / danger
+  zones (`warnLevel`, `dangerLevel`), drawn as it arrives (no smoothing, no
+  animation). Peak hold (`peak`, `SuiTheme.meterPeakHold`), a clip lamp that
+  latches at `clipLevel` (`clipped`, `reset()`), a tick scale (`scaleStep` or
+  automatic without collisions) and `valueText`. The pinned-level marker
+  (`pinnedLevel`, `pinnedLabel`) is the app's; with `pinEditable` it is a
+  Slider the user moves by keyboard, drag or click, emitting
+  `pinMoved(level)`. Horizontal or vertical. Accessible: a ProgressBar named
+  by `label` with the level as its value and the peak, pin and clipping in
+  its description; the editable pin is a Slider.
+- `SuiTheme` NATIVE-ONLY: `meterThickness`, `meterPinSize`, `meterPeakHold`.
+- Gallery: a Level meter section on the Controls page (a target marker, an
+  editable gate threshold, a stereo pair; "Simulate input" drives them).
+- Tests: `tests/test_meter.py` (fill and range, zones in both themes, value
+  text and silence, peak hold timing, clip latch and reset, accessibility,
+  fixed and editable pins by keyboard and pointer, the scale, vertical
+  meters, nothing animating), the shared component contract, a QML
+  TestCase, the plain-text payload and the wheel smoke scene (29 components).
+
+## 0.5.0 — 2026-10-13
+
+Progress. Additive; no existing API changes.
+
+- **`SuiProgressBar`**: determinate progress (Qt's ProgressBar: `from`, `to`,
+  `value`, `position`) with `label` above the bar and `valueText` beside it
+  (the percentage by default; tabular digits), `showLabel` / `showValue`,
+  and `tone` (`accent`, `ok`, `warn`, `danger`). `cancellable` adds a cancel
+  button beside the bar, a Tab stop named `cancelLabel` ("Cancel <label>"),
+  that emits `cancelRequested()`. The fill moves on `SuiTheme.duration`
+  (instant under reduced motion). Accessible: ProgressBar named by `label`,
+  described by `valueText`, with Qt's value interface. `indeterminate` is
+  not drawn.
+- `SuiTheme` NATIVE-ONLY: `progressHeight`.
+- Gallery: a Progress section on the Controls page, with an export you can
+  start and cancel.
+- Tests: `tests/test_progress.py` (range and fill, motion and reduced
+  motion, value text, tones in both themes, cancel by keyboard, Tab order,
+  accessibility), the shared component contract, a QML TestCase, the
+  plain-text payload and the wheel smoke scene (28 components).
+
+## 0.4.0 — 2026-10-13
+
+Form controls. Additive; no existing API changes.
+
+- **`SuiCheckBox`**: a labelled checkbox (the web's CheckboxField) with
+  optional `description` help text, `tristate`, and `label` for a box without
+  visible text.
+- **`SuiSwitch`**: an on/off switch with `description`; the thumb slides on
+  `SuiTheme.duration` (instant under reduced motion) and can be dragged.
+- **`SuiRadioButton`**: one choice of an exclusive group (same parent or a
+  `ButtonGroup`). The group is one Tab stop (its checked button, else the
+  first) and the arrow keys move and check, wrapping, as browsers do.
+- **`SuiSelect`**: a drop-down (`ComboBox`) over strings or objects
+  (`textRole` / `valueRole`), `placeholderText` for no choice, as wide as its
+  widest option; keyboard, type-ahead and pointer choice; options are
+  ListItems.
+- **`SuiSlider`**: horizontal or vertical; arrows step (1 % of the range
+  without `stepSize`), PageUp/PageDown ten steps, Home/End the ends, each
+  emitting `moved()`; `unit`, `decimals` and `showValue` draw `valueText`
+  beside the track (in a fixed `valueWidth`).
+- Every control is keyboard-focusable with the keyboard-only ring, has its
+  accessible role and name (`SuiSelect` and `SuiSlider` warn without a
+  `label`) and animates only on `SuiTheme.duration`.
+- `SuiTheme` NATIVE-ONLY: `indicatorSize`, `checkboxRadius`, `switchWidth`,
+  `switchHeight`, `switchThumbSize`, `sliderTrackHeight`, `sliderHandleSize`,
+  `menuMaxHeight`, and `accentForeground` (marks on an accent fill; 4.5:1 or
+  more on the accent and its hover colour in both themes, tested).
+- `SuiIcon`: built-in `text` and `sliders` icons.
+- Internal `SuiToggleLabel` lays out a toggle's label and help text.
+- Gallery: the pages are now Mail, Typography and Controls (every form
+  control); screenshot views `type` and `controls`.
+- Tests: `tests/test_forms.py` (keyboard, pointer, tristate, the radio
+  group's Tab stop and arrows, the select popup with string and object
+  models, slider steps, vertical sliders, accessibility, colours in both
+  themes, reduced motion), the shared component contract, QML TestCases, the
+  plain-text payload and the wheel smoke scene (27 components).
+
 ## 0.3.0 — 2026-10-13
 
 Typography: the type scale as a component. Additive; no existing API changes.
