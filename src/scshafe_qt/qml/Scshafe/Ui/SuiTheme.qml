@@ -264,6 +264,18 @@ QtObject {
     readonly property int statusDotSize: 8
     readonly property int splitterHandleWidth: 8  // hit area; the drawn line is 1px
     readonly property int splitterStep: 16        // arrow-key resize step (Shift: x4)
+    readonly property int indicatorSize: 16       // checkbox and radio boxes
+    readonly property int checkboxRadius: 4
+    readonly property int switchWidth: 32
+    readonly property int switchHeight: 18
+    readonly property int switchThumbSize: 12
+    readonly property int sliderTrackHeight: 4
+    readonly property int sliderHandleSize: 16
+    readonly property int menuMaxHeight: 320      // select popups
+    // Marks on an accent fill (check marks, radio dots, switch thumbs): the panel
+    // (white) on the light theme's dark accent, the page background on the dark
+    // theme's light accent; >= 4.5:1 on --sui-accent in both (tests/test_tokens.py).
+    readonly property color accentForeground: dark ? bg : panel
 
     // ---- Layout defaults ------------------------------------------------
     readonly property int sidebarWidth: 232

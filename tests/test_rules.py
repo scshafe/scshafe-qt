@@ -62,7 +62,7 @@ def test_every_qml_file_is_in_qmldir():
     assert listed == {p.name for p in MODULE.glob("*.qml")}
     for line in lines[1:]:
         if line.startswith("internal"):
-            assert line.split()[1] in {"SuiFocusRing", "SuiSplitHandle"}, line
+            assert line.split()[1] in {"SuiFocusRing", "SuiSplitHandle", "SuiToggleLabel"}, line
 
 
 @pytest.mark.parametrize("path", CHECKED, ids=lambda p: p.name)

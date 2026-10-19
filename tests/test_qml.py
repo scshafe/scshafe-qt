@@ -25,4 +25,4 @@ def test_qml_testcases():
     assert totals, output
     passed, failed, skipped = map(int, totals.groups())
     assert proc.returncode == 0 and failed == 0, output
-    assert passed >= 22 and skipped == 0, output
+    assert passed >= 26 and skipped == 0, output
