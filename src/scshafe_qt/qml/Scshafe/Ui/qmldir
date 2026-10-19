@@ -32,6 +32,7 @@ SuiTextField 1.0 SuiTextField.qml
 SuiToast 1.0 SuiToast.qml
 SuiToastHost 1.0 SuiToastHost.qml
 SuiTrail 1.0 SuiTrail.qml
+SuiWaveform 1.0 SuiWaveform.qml
 internal SuiFocusRing SuiFocusRing.qml
 internal SuiScrollBar SuiScrollBar.qml
 internal SuiSplitHandle SuiSplitHandle.qml

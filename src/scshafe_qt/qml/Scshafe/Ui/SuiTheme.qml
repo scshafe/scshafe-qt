@@ -285,6 +285,9 @@ QtObject {
     readonly property real chartFillAlpha: 0.18   // area and band fills: the series colour at this
     readonly property int chartPointSize: 6       // scatter points (diameter)
     readonly property int chartTickLength: 4
+    readonly property int waveformHandleWidth: 10  // trim handle grip
+    readonly property int waveformHandleHeight: 36
+    readonly property int waveformHandleReach: 16  // px either side of a trim edge that grab its handle
     // Marks on an accent fill (check marks, radio dots, switch thumbs): the panel
     // (white) on the light theme's dark accent, the page background on the dark
     // theme's light accent; >= 4.5:1 on --sui-accent in both (tests/test_tokens.py).

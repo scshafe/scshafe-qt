@@ -6,7 +6,7 @@
 // Built-in names: see `names` (close, search, check, info, warning, danger,
 // chevron-left/right/up/down, inbox, mail, archive, tag, clock, filter, plus,
 // more, keyboard, panel-left, panel-right, sort, user, sun, moon, dot, text,
-// sliders, table, chart).
+// sliders, table, chart, waveform).
 import QtQuick
 import QtQuick.Shapes
 import QtQuick.Controls.impl as Impl
@@ -51,7 +51,8 @@ Item {
         "text": "M3 5 L3 3.5 L13 3.5 L13 5 M8 3.5 L8 12.5 M6 12.5 L10 12.5",
         "sliders": "M2 5 L8.5 5 M12.5 5 L14 5 M10.5 3 A2 2 0 1 1 10.5 7 A2 2 0 1 1 10.5 3 Z M2 11 L3.5 11 M7.5 11 L14 11 M5.5 9 A2 2 0 1 1 5.5 13 A2 2 0 1 1 5.5 9 Z",
         "table": "M2 3 L14 3 L14 13 L2 13 Z M2 6.5 L14 6.5 M2 10 L14 10 M6.5 3 L6.5 13",
-        "chart": "M2 2.5 L2 13.5 L14 13.5 M4.5 10.5 L7.5 6.5 L10 8.5 L13.5 3.5"
+        "chart": "M2 2.5 L2 13.5 L14 13.5 M4.5 10.5 L7.5 6.5 L10 8.5 L13.5 3.5",
+        "waveform": "M2 7 L2 9 M4.5 4.5 L4.5 11.5 M7 2 L7 14 M9.5 5 L9.5 11 M12 3.5 L12 12.5 M14.5 6.5 L14.5 9.5"
     })
     readonly property var names: Object.keys(paths)
     readonly property bool _builtin: name !== "" && paths[name] !== undefined

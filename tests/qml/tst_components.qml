@@ -8,7 +8,7 @@ import Scshafe.Ui
 Item {
     id: root
     width: 900
-    height: 600
+    height: 740
 
     ListModel {
         id: messages
@@ -125,6 +125,19 @@ Item {
         values: [1, 2, 2, 3, 3, 3]
         binWidth: 1
     }
+    SuiWaveform {
+        id: wave
+        x: 10
+        y: 600
+        width: 600
+        height: 120
+        label: "Take 12"
+        bins: [-0.2, 0.3, -0.8, 0.7, -0.5, 0.6, -0.1, 0.2]
+        frameCount: 96000
+        trimStart: 12000
+        trimEnd: 84000
+        playhead: 48000
+    }
     SuiToastHost { id: toasts; anchors.fill: parent }
 
     SignalSpy { id: nextSpy; target: list; signalName: "nextRequested" }
@@ -138,6 +151,9 @@ Item {
     SignalSpy { id: cancelSpy; target: progress; signalName: "cancelRequested" }
     SignalSpy { id: pinSpy; target: meter; signalName: "pinMoved" }
     SignalSpy { id: tableSpy; target: table; signalName: "activated" }
+    SignalSpy { id: seekSpy; target: wave; signalName: "seekRequested" }
+    SignalSpy { id: trimSpy; target: wave; signalName: "trimChanged" }
+    SignalSpy { id: playSpy; target: wave; signalName: "playRequested" }
 
     TestCase {
         name: "SuiComponents"
@@ -147,7 +163,7 @@ Item {
             SuiTheme.mode = "light"
             SuiTheme.reducedMotion = true
             for (const spy of [nextSpy, activatedSpy, sidebarSpy, hookSpy, rejectedSpy, toggledSpy,
-                               activatedSelectSpy, movedSpy, cancelSpy, pinSpy, tableSpy])
+                               activatedSelectSpy, movedSpy, cancelSpy, pinSpy, tableSpy, seekSpy, trimSpy, playSpy])
                 spy.clear()
             root.forceActiveFocus(Qt.OtherFocusReason)
         }
@@ -321,6 +337,28 @@ Item {
             keyClick(Qt.Key_Escape)
             verify(isNaN(chart.inspectedX))
             compare(chart.Accessible.role, Accessible.Chart)
+        }
+
+        function test_waveform_keys_trim_and_play() {
+            wave.forceActiveFocus(Qt.TabFocusReason)
+            verify(findChild(findChild(wave, "waveformBackground"), "focusRing").visible)
+            keyClick(Qt.Key_Right)  // from the playhead, a tenth of a second
+            keyClick(Qt.Key_Home)
+            compare(seekSpy.count, 2)
+            compare(seekSpy.signalArguments[0][0], 52800)
+            compare(seekSpy.signalArguments[1][0], 12000)
+            const start = findChild(wave, "trimStartHandle")
+            start.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_Right)
+            compare(trimSpy.count, 1)
+            compare(trimSpy.signalArguments[0][0], 16800)
+            compare(trimSpy.signalArguments[0][1], 84000)
+            compare(wave.trimStart, 12000)  // controlled: never assigned
+            mouseDoubleClickSequence(wave, wave.xAt(48000), 60)
+            compare(playSpy.count, 1)
+            compare(playSpy.signalArguments[0][0], 48000)
+            compare(wave.Accessible.role, Accessible.Slider)
+            compare(wave.Accessible.description, "kept 0.25 to 1.75 of 2.00 seconds")
         }
 
         function test_histogram_bins() {
