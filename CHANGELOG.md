@@ -7,6 +7,44 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.9.0 — 2026-10-19
+
+Waveform. Additive; no existing API changes.
+
+- **`SuiWaveform`**: a recording's waveform with trim handles and a playhead, in
+  frames of the original (the API voice-lab asked for, with the behaviour of its
+  `WaveformView` reference). `bins` (`[min0, max0, ...]` in -1..1, a JS array or a
+  Python list) draw min/max per pixel column on a Canvas that repaints only for the
+  bins, the size or the theme; `frameCount`, `sampleRate` (48000); the kept frames
+  `trimStart`..`trimEnd` with the rest shaded; `playhead` (-1: none); `editable`;
+  `placeholderText`.
+  - Controlled: dragging a handle shows the edge in `shownStart` / `shownEnd` and
+    emits `trimChanged(start, end)` on release; nothing is assigned. A press within
+    16 px of an edge grabs its handle (the nearer; at a shared pixel, the side of
+    the press) without jumping; the handles never cross; disabling or a new take
+    cancels a drag.
+  - `seekRequested(frame)` on press, drag and keys (←/→ 0.1 s from the playhead or
+    the kept start, Home/End the kept edges; not with Shift, Ctrl, Alt or Meta),
+    always within the kept frames; `playRequested(frame)` on a double-click in them.
+  - With `editable` each handle is a Tab stop (`trimStartLabel`, `trimEndLabel`):
+    ←/→ 0.1 s, PageUp/PageDown 1 s, Home/End as far as it goes.
+  - The time under the pointer: a dashed line and `hoverText` (m:ss.mmm).
+  - Accessible: Slider named by `label`, described "kept X to Y of Z seconds", Qt's
+    value interface in seconds (`value`, `minimumValue`, `maximumValue`,
+    `stepSize`), increase/decrease actions; the handles are Sliders.
+- `SuiTheme` NATIVE-ONLY: `waveformHandleWidth`, `waveformHandleHeight`,
+  `waveformHandleReach`.
+- `SuiIcon`: built-in `waveform` icon.
+- Gallery: a Waveform page (a take whose trim the page writes back, a pretend
+  player, a read-only clip, an empty waveform); screenshot view `waveform`.
+- Tests: `tests/test_waveform.py` (drawing min/max, clamping, many pairs per pixel,
+  repaints, placeholder, trim clamping, shading, playhead, seeking by pointer and
+  keys, the keyboard-only ring, controlled handle drags and write-back, crossing,
+  grab offset, coincident handles, read-only, cancelling, handle keys, focus from a
+  handle, double-click, hover time, accessibility and actions), the shared component
+  contract, a QML TestCase, the plain-text payload and the wheel smoke scene (33
+  components).
+
 ## 0.8.0 — 2026-10-19
 
 Charts. Additive; no existing API changes.

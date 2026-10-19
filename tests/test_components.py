@@ -109,6 +109,12 @@ SPECS: dict[str, Spec] = {
         ' rows: [{ name: "take-1", score: 0.9 }, { name: "take-2", score: 0.4 }, { name: "take-3", score: 0.7 }] }',
         R.Table, "Takes", True, "body",
     ),
+    "SuiWaveform": Spec(
+        'SuiWaveform { objectName: "subject"; x: 20; y: 20; width: 420; height: 120; label: "Take 12";'
+        ' bins: [-0.2, 0.3, -0.8, 0.7, -0.5, 0.6, -0.1, 0.2]; frameCount: 96000; trimStart: 12000; trimEnd: 84000;'
+        ' playhead: 48000 }',
+        R.Slider, "Take 12", True, "waveformArea",
+    ),
     "SuiText": Spec('SuiText { objectName: "subject"; x: 40; y: 40; text: "Recordings"; variant: "title" }',
                     R.Heading, "Recordings"),
     "SuiBadge": Spec('SuiBadge { objectName: "subject"; x: 40; y: 40; count: 120 }', R.StaticText, "99+"),

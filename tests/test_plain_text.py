@@ -77,6 +77,9 @@ def _scene(port: int) -> str:
             SuiSlider {{ label: "x"; showValue: true; valueText: root.p }}
             SuiProgressBar {{ label: root.p; valueText: root.p; value: 0.5 }}
             SuiLevelMeter {{ width: 300; label: root.p; valueText: root.p; unit: root.p; level: -20 }}
+            SuiWaveform {{ width: 300; height: 60; label: root.p; placeholderText: root.p; trimStartLabel: root.p
+                           trimEndLabel: root.p }}
+            SuiWaveform {{ width: 300; height: 60; label: root.p; bins: [-0.5, 0.5]; frameCount: 48000 }}
             SuiTable {{ width: 300; height: 90; label: root.p
                 columns: [{{ key: "a", title: root.p }}, {{ key: "b", title: "b", format: (v) => root.p }}]
                 rows: [{{ a: root.p, b: 1 }}] }}

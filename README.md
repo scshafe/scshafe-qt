@@ -13,9 +13,9 @@ type and motion.
 - Python **3.12, 3.13 and 3.14** (`requires-python >=3.12`, from 0.2.0; 0.1.x needed
   3.14). CI tests all three. The PySide6 6.11 wheels are abi3 for CPython 3.10+ and
   declare `requires-python <3.15`, so a newer Python waits for a PySide6 that supports it.
-- Status: **0.8.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
+- Status: **0.9.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
   (typography), the form controls, `SuiProgressBar`, `SuiLevelMeter`, `SuiTable`,
-  `SuiChart` and `SuiHistogram` below.
+  `SuiChart`, `SuiHistogram` and `SuiWaveform` below.
 - **Untrusted text is safe to pass:** every component renders caller strings as plain text
   (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
   0.1.0 rendered HTML-looking strings as rich text (fixed in 0.1.1; upgrade).
@@ -31,7 +31,7 @@ uv add scshafe-qt            # or: pip install scshafe-qt
 
 Minor releases add components and keep the existing API (0.3.0: `SuiText`; 0.4.0: form
 controls; 0.5.0: `SuiProgressBar`; 0.6.0: `SuiLevelMeter`;
-0.7.0: `SuiTable`; 0.8.0: `SuiChart`, `SuiHistogram`); an app
+0.7.0: `SuiTable`; 0.8.0: `SuiChart`, `SuiHistogram`; 0.9.0: `SuiWaveform`); an app
 pinned below the new minor (`scshafe-qt>=0.2,<0.3`) stays where it is until it widens
 the range. 0.2.0 changed only the supported Python range.
 
@@ -106,6 +106,7 @@ Imports are versionless (`import Scshafe.Ui`).
 | `SuiLevelMeter` | live level (`level`, `from`..`to`, default -60..0 dB) in ok / warn / danger zones (`warnLevel`, `dangerLevel`), peak hold (`peak`), a latched clip lamp (`clipped`, `reset()`), a scale and `valueText`; a pinned-level marker (`pinnedLevel`, `pinnedLabel`), user-movable with `pinEditable` (`pinMoved(level)`); horizontal or vertical | ProgressBar named by `label` with the level as its value, described by level, peak, pin and clipping; an editable pin is a Slider Tab stop: arrows by `pinStep`, PgUp/PgDn ten, Home/End, drag or click |
 | `SuiProgressBar` | determinate progress (`from`, `to`, `value`): `label` above, `valueText` beside (a percentage by default), `tone` `accent` / `ok` / `warn` / `danger`; `cancellable` adds a cancel button emitting `cancelRequested()` | ProgressBar named by `label`, described by `valueText`, Qt's value interface; the cancel button is a Tab stop named `cancelLabel` ("Cancel <label>") |
 | `SuiTable` | sortable, virtualised data table (`columns`, `rows`: a JS array or a Python list of dicts; 10,000 rows sort in ~20 ms and scroll at ~3 ms a frame); resizable columns (`columnWidths`, `columnResized`), row selection (`selectionMode` single / multiple / none, `selectedRows`, `currentRow`, `rowKey` keeps it across new rows), `format` / `tone` per column | Table named by `label`; the header is one Tab stop (←/→ between ColumnHeaders, Enter/Space sort, Ctrl+←/→ resize), the body another (↑/↓ PgUp/PgDn Home/End, Shift extends, Ctrl moves without selecting, Space toggles, Ctrl+A, Enter / double-click `activated(row)`); rows are ListItems named "Title: value, …" |
+| `SuiWaveform` | a recording's waveform (`bins`: min/max pairs in -1..1) over `frameCount` frames at `sampleRate`, the kept frames `trimStart`..`trimEnd` (the rest shaded), a `playhead`; controlled: `seekRequested(frame)` on press, drag or a key, `trimChanged(start, end)` when a handle is released (`editable`), `playRequested(frame)` on a double-click; the time under the pointer | Slider named by `label`, described "kept X to Y of Z seconds", value interface in seconds; ←/→ step 0.1 s from the playhead, Home/End the kept edges; with `editable` each handle is a Slider Tab stop (←/→ 0.1 s, PgUp/PgDn 1 s, Home/End) |
 | `SuiText` | text in a type style: `variant` `display` / `title` / `heading` / `subheading` / `section` / `label` / `body` / `caption` / `small` / `code`; `tone` overrides the colour; `tabular` digits | heading variants are Headings, the rest StaticText, named by the text; plain text |
 | `SuiIcon`, `SuiKbd` | built-in vector icons (`SuiIcon.names`) or a tinted image; a keyboard-key badge | icons are decorative unless given a `label` |
 
@@ -154,7 +155,7 @@ uv run python examples/gallery.py --screenshot DIR      # PNGs of every view x t
 ```
 
 The sidebar's first section switches pages: the mail sample, typography, controls, a
-table of 10,000 rows and charts.
+table of 10,000 rows, charts and a waveform.
 In the window: Tab / Shift+Tab, `j` / `k`, `1`–`8` (a toast), `/`, `?`.
 
 ### Typography
@@ -341,6 +342,34 @@ SuiHistogram { label: "Take durations"; values: durations; binWidth: 2.5; xLabel
   by default) or `binWidth` bins (aligned to multiples of the width; the largest value
   gets its own bin), over `from`..`to`; `density` plots shares; `bins` is
   `[{ x0, x1, count, share }]`.
+
+### Waveform
+
+```qml
+SuiWaveform {
+    label: "Take 12"
+    bins: take.bins                          // [min0, max0, min1, max1, ...] in -1..1
+    frameCount: take.frameCount              // sampleRate: 48000 (the default)
+    trimStart: take.trimStart; trimEnd: take.trimEnd
+    playhead: player.playing ? player.frame : -1
+    onTrimChanged: (start, end) => take.setTrim(start, end)   // write it back
+    onSeekRequested: (frame) => player.seek(frame)
+    onPlayRequested: (frame) => player.playFrom(frame)
+}
+```
+
+- Frames are the original's; the waveform never edits audio and never assigns the trim
+  or the playhead. The owner computes `bins` (about 2,048 pairs whatever the length is
+  plenty) and maps them to any display scale it wants; they draw min/max per pixel
+  column on a Canvas that repaints only when the bins, the size or the theme change.
+- The kept frames are `[trimStart, trimEnd)` (`trimEnd` 0: to the end). Dragging a
+  handle shows the new edge in `shownStart` / `shownEnd`; `trimChanged` fires on release,
+  and with the keyboard on each step. A press within `SuiTheme.waveformHandleReach` of
+  an edge grabs its handle (the nearer; when both share a pixel, the side of the press),
+  without jumping to the pointer; the handles never cross.
+- Seeking (press, drag, ←/→, Home/End) stays within the kept frames; a double-click in
+  them asks to play from that frame. `hoverFrame` / `hoverText` (m:ss.mmm) are the time
+  under the pointer; `placeholderText` shows while there are no bins. Nothing animates.
 
 ### Theme and motion
 
