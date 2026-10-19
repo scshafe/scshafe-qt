@@ -147,18 +147,29 @@ def load_gallery(engine, qtbot):
     return window
 
 
+def animation_durations(window) -> list:
+    """Every animation's duration, read as it is found. The wrappers are not kept: PySide can
+    invalidate a QML object's wrapper while the object lives (seen on Python 3.12, when its
+    garbage collector dropped stale wrappers from earlier scenes), so collect first and walk
+    afresh each time."""
+    import gc
+
+    gc.collect()
+    return [o.property("duration") for o in walk_objects(window)
+            if o.inherits("QQuickAbstractAnimation") and o.property("duration") is not None]
+
+
 def test_reduced_motion_zeroes_every_transition(engine, qtbot):
     """Transitions and standalone animations (popups, toasts, the shell) report duration 0."""
     theme = engine.singletonInstance("Scshafe.Ui", "SuiTheme")
     window = load_gallery(engine, qtbot)
-    anims = [o for o in walk_objects(window)
-             if o.inherits("QQuickAbstractAnimation") and o.property("duration") is not None]
-    assert len(anims) >= 8, len(anims)
-    assert all(a.property("duration") > 0 for a in anims)
+    durations = animation_durations(window)
+    assert len(durations) >= 8, len(durations)
+    assert all(d > 0 for d in durations)
     theme.setProperty("reducedMotion", True)
-    assert {a.property("duration") for a in anims} == {0}
+    assert set(animation_durations(window)) == {0}
     theme.setProperty("reducedMotion", False)
-    assert all(a.property("duration") > 0 for a in anims)
+    assert all(d > 0 for d in animation_durations(window))
     window.close()
 
 
