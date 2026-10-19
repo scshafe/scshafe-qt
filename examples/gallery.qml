@@ -21,7 +21,8 @@ Window {
         { section: "Gallery", text: "Mail", iconName: "mail", page: "mail" },
         { section: "Gallery", text: "Typography", iconName: "text", page: "type" },
         { section: "Gallery", text: "Controls", iconName: "sliders", page: "controls" },
-        { section: "Gallery", text: "Table", iconName: "table", page: "table" }
+        { section: "Gallery", text: "Table", iconName: "table", page: "table" },
+        { section: "Gallery", text: "Charts", iconName: "chart", page: "charts" }
     ]
     property string page: "mail"
     function showPage(id) {
@@ -44,7 +45,12 @@ Window {
         takesTable.setCurrentRow(takesTable._order[3])
         takesTable.forceActiveFocus(Qt.TabFocusReason)  // the rows, as if tabbed to: the ring shows
     }
-    // 10,000 made-up takes for the Table page.
+    function showCharts() {
+        showPage("charts")
+        pitchChart._inspect(1.6)
+    }
+    readonly property var takes: makeTakes(10000)
+    // 10,000 made-up takes for the Table and Charts pages.
     function makeTakes(count) {
         const speakers = ["Ada", "Grace", "Alan", "Edsger", "Barbara", "Ken"]
         const scripts = ["Rainbow passage", "Grandfather passage", "Digits 0-9", "Free speech", "Sentences 1-10"]
@@ -57,7 +63,7 @@ Window {
                 take: "take-" + String(i + 1).padStart(5, "0"),
                 speaker: speakers[Math.floor(rand() * speakers.length)],
                 script: scripts[Math.floor(rand() * scripts.length)],
-                seconds: 3 + rand() * 57,
+                seconds: 3 + (rand() + rand() + rand()) * 12,
                 snr: Math.round((8 + rand() * 32) * 10) / 10,
                 score: Math.round(rand() * 1000) / 1000,
                 recorded: "2026-" + String(1 + Math.floor(rand() * 9)).padStart(2, "0") + "-"
@@ -510,7 +516,6 @@ Window {
                 ColumnLayout {
                     objectName: "tablePage"
                     spacing: 0
-                    readonly property var takes: root.makeTakes(10000)
 
                     RowLayout {
                         Layout.fillWidth: true
@@ -539,7 +544,7 @@ Window {
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         label: "Takes"
-                        rows: parent.takes
+                        rows: root.takes
                         rowKey: "id"
                         selectionMode: "multiple"
                         columns: [
@@ -554,6 +559,83 @@ Window {
                             { key: "recorded", title: "Recorded", width: 110 }
                         ]
                         onActivated: (row) => toasts.show("Opened " + rows[row].take, { tone: "info" })
+                    }
+                }
+
+                Flickable {
+                    id: chartsPage
+                    objectName: "chartsPage"
+                    contentHeight: chartsGrid.implicitHeight + 2 * SuiTheme.spaceXl
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    // A made-up pitch contour: a phrase of 4 s at 100 points a second.
+                    readonly property var time: Array.from({ length: 400 }, (_, i) => i / 100)
+                    readonly property var pitch: time.map((t, i) => i >= 205 && i < 230 ? NaN
+                        : 165 + 35 * Math.sin(t * 1.9) * Math.exp(-t / 5) + 9 * Math.sin(t * 13))
+                    readonly property var sample: root.takes.slice(0, 1500)
+
+                    GridLayout {
+                        id: chartsGrid
+                        x: SuiTheme.spaceXl
+                        y: SuiTheme.spaceXl
+                        width: parent.width - 2 * SuiTheme.spaceXl
+                        columns: 2
+                        columnSpacing: SuiTheme.spaceXl
+                        rowSpacing: SuiTheme.spaceLg
+
+                        SuiText { text: "Charts"; variant: "title"; Layout.columnSpan: 2 }
+                        SuiChart {
+                            id: pitchChart
+                            objectName: "pitchChart"
+                            Layout.columnSpan: 2
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 240
+                            label: "Pitch, take 12"
+                            xLabel: "Time (s)"
+                            yLabel: "F0 (Hz)"
+                            series: [
+                                { kind: "band", name: "Speaker range", x: chartsPage.time,
+                                  lower: chartsPage.time.map(t => 132 + 30 * Math.sin(t * 1.9) * Math.exp(-t / 5)),
+                                  upper: chartsPage.time.map(t => 198 + 30 * Math.sin(t * 1.9) * Math.exp(-t / 5)) },
+                                { kind: "line", name: "F0", x: chartsPage.time, y: chartsPage.pitch },
+                                { kind: "scatter", name: "Onsets", x: [0.42, 1.18, 2.51, 3.3],
+                                  y: [176, 181, 158, 149], tone: "warn" }
+                            ]
+                            markers: [{ axis: "y", value: 180, label: "Target" }]
+                        }
+                        SuiChart {
+                            objectName: "energyChart"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 200
+                            label: "Energy"
+                            xLabel: "Time (s)"
+                            yLabel: "dB"
+                            series: [{ kind: "area", name: "RMS", x: chartsPage.time, baseline: -60, tone: 2,
+                                       y: chartsPage.time.map((t, i) => -38 + 14 * Math.abs(Math.sin(t * 2.2)) + 3 * Math.sin(i)) }]
+                        }
+                        SuiChart {
+                            objectName: "scatterChart"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 200
+                            label: "Score by SNR, 1,500 takes"
+                            xLabel: "SNR (dB)"
+                            yLabel: "Score"
+                            xNice: true
+                            series: [{ kind: "scatter", name: "Takes", size: 4, tone: 8,
+                                       x: chartsPage.sample.map(t => t.snr), y: chartsPage.sample.map(t => t.score) }]
+                        }
+                        SuiHistogram {
+                            objectName: "durationHistogram"
+                            Layout.columnSpan: 2
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 200
+                            label: "Take durations, 10,000 takes"
+                            xLabel: "Duration (s)"
+                            values: root.takes.map(t => t.seconds)
+                            binWidth: 2.5
+                            tone: 3
+                        }
                     }
                 }
             }
