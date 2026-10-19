@@ -418,6 +418,11 @@ _NATIVE_HEAD = """
     readonly property int meterThickness: 8       // level meter bar
     readonly property int meterPinSize: 10        // the pinned-level marker's knob
     readonly property int meterPeakHold: 1500     // ms a level meter holds its peak
+    readonly property int tableRowHeight: 32      // table rows and header
+    readonly property int tableColumnWidth: 120   // a column without a width
+    readonly property int tableMinColumnWidth: 48
+    readonly property int tableMaxColumnWidth: 960
+    readonly property int scrollBarSize: 10       // hit area; the thumb is drawn thinner until hovered
     // Marks on an accent fill (check marks, radio dots, switch thumbs): the panel
     // (white) on the light theme's dark accent, the page background on the dark
     // theme's light accent; >= 4.5:1 on --sui-accent in both (tests/test_tokens.py).
