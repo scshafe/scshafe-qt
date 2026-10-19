@@ -7,6 +7,30 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.6.0 — 2026-10-19
+
+Level meter. Additive; no existing API changes.
+
+- **`SuiLevelMeter`**: a live level in the meter's unit (`from`..`to`,
+  default -60..0 dB; -Infinity is silence), revealing ok / warn / danger
+  zones (`warnLevel`, `dangerLevel`), drawn as it arrives (no smoothing, no
+  animation). Peak hold (`peak`, `SuiTheme.meterPeakHold`), a clip lamp that
+  latches at `clipLevel` (`clipped`, `reset()`), a tick scale (`scaleStep` or
+  automatic without collisions) and `valueText`. The pinned-level marker
+  (`pinnedLevel`, `pinnedLabel`) is the app's; with `pinEditable` it is a
+  Slider the user moves by keyboard, drag or click, emitting
+  `pinMoved(level)`. Horizontal or vertical. Accessible: a ProgressBar named
+  by `label` with the level as its value and the peak, pin and clipping in
+  its description; the editable pin is a Slider.
+- `SuiTheme` NATIVE-ONLY: `meterThickness`, `meterPinSize`, `meterPeakHold`.
+- Gallery: a Level meter section on the Controls page (a target marker, an
+  editable gate threshold, a stereo pair; "Simulate input" drives them).
+- Tests: `tests/test_meter.py` (fill and range, zones in both themes, value
+  text and silence, peak hold timing, clip latch and reset, accessibility,
+  fixed and editable pins by keyboard and pointer, the scale, vertical
+  meters, nothing animating), the shared component contract, a QML
+  TestCase, the plain-text payload and the wheel smoke scene (29 components).
+
 ## 0.5.0 — 2026-10-19
 
 Progress. Additive; no existing API changes.

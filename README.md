@@ -13,8 +13,8 @@ type and motion.
 - Python **3.12, 3.13 and 3.14** (`requires-python >=3.12`, from 0.2.0; 0.1.x needed
   3.14). CI tests all three. The PySide6 6.11 wheels are abi3 for CPython 3.10+ and
   declare `requires-python <3.15`, so a newer Python waits for a PySide6 that supports it.
-- Status: **0.5.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
-  (typography), the form controls and `SuiProgressBar` below.
+- Status: **0.6.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
+  (typography), the form controls, `SuiProgressBar` and `SuiLevelMeter` below.
 - **Untrusted text is safe to pass:** every component renders caller strings as plain text
   (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
   0.1.0 rendered HTML-looking strings as rich text (fixed in 0.1.1; upgrade).
@@ -29,7 +29,7 @@ uv add scshafe-qt            # or: pip install scshafe-qt
 ```
 
 Minor releases add components and keep the existing API (0.3.0: `SuiText`; 0.4.0: form
-controls; 0.5.0: `SuiProgressBar`); an app
+controls; 0.5.0: `SuiProgressBar`; 0.6.0: `SuiLevelMeter`); an app
 pinned below the new minor (`scshafe-qt>=0.2,<0.3`) stays where it is until it widens
 the range. 0.2.0 changed only the supported Python range.
 
@@ -40,12 +40,12 @@ PEP 740 attestations from trusted publishing. As a fallback, install straight fr
 Release; the repository is public, so the download URLs need no token:
 
 ```sh
-pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.5.0/scshafe_qt-0.5.0-py3-none-any.whl
+pip install https://github.com/scshafe/scshafe-qt/releases/download/v0.6.0/scshafe_qt-0.6.0-py3-none-any.whl
 # or, in a uv project, a pinned URL source (uv.lock records its sha256):
-uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.5.0/scshafe_qt-0.5.0-py3-none-any.whl"
+uv add "scshafe-qt @ https://github.com/scshafe/scshafe-qt/releases/download/v0.6.0/scshafe_qt-0.6.0-py3-none-any.whl"
 ```
 
-To check the files yourself: `gh release download v0.5.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
+To check the files yourself: `gh release download v0.6.0 -R scshafe/scshafe-qt -p '*.whl' -p SHA256SUMS`,
 then `sha256sum -c --ignore-missing SHA256SUMS`.
 
 The library accepts the Qt minor it is tested on (`PySide6-Essentials>=6.11.2,<6.12`);
@@ -99,6 +99,7 @@ Imports are versionless (`import Scshafe.Ui`).
 | `SuiRadioButton` | one choice of an exclusive group (same parent, or a `ButtonGroup`), with `description` | the group is one Tab stop (its checked button); ↑/↓/←/→ move and check, wrapping; RadioButton role |
 | `SuiSelect` | drop-down of one option (`ComboBox`): strings or objects with `textRole` / `valueRole`; `placeholderText` for no choice; as wide as its widest option | Space/Enter opens, ↑/↓ and typing move, Enter chooses, Escape closes; closed, ↑/↓ change it; ComboBox named by `label`, described by the choice |
 | `SuiSlider` | number in a range (`from`, `to`, `stepSize`), horizontal or vertical; `unit`, `decimals`, `showValue` draws `valueText` | arrows one step (1 % without `stepSize`), PgUp/PgDn ten, Home/End the ends; `moved()` for every user change; Slider named by `label`, value interface, described by `valueText` |
+| `SuiLevelMeter` | live level (`level`, `from`..`to`, default -60..0 dB) in ok / warn / danger zones (`warnLevel`, `dangerLevel`), peak hold (`peak`), a latched clip lamp (`clipped`, `reset()`), a scale and `valueText`; a pinned-level marker (`pinnedLevel`, `pinnedLabel`), user-movable with `pinEditable` (`pinMoved(level)`); horizontal or vertical | ProgressBar named by `label` with the level as its value, described by level, peak, pin and clipping; an editable pin is a Slider Tab stop: arrows by `pinStep`, PgUp/PgDn ten, Home/End, drag or click |
 | `SuiProgressBar` | determinate progress (`from`, `to`, `value`): `label` above, `valueText` beside (a percentage by default), `tone` `accent` / `ok` / `warn` / `danger`; `cancellable` adds a cancel button emitting `cancelRequested()` | ProgressBar named by `label`, described by `valueText`, Qt's value interface; the cancel button is a Tab stop named `cancelLabel` ("Cancel <label>") |
 | `SuiText` | text in a type style: `variant` `display` / `title` / `heading` / `subheading` / `section` / `label` / `body` / `caption` / `small` / `code`; `tone` overrides the colour; `tabular` digits | heading variants are Headings, the rest StaticText, named by the text; plain text |
 | `SuiIcon`, `SuiKbd` | built-in vector icons (`SuiIcon.names`) or a tinted image; a keyboard-key badge | icons are decorative unless given a `label` |
@@ -231,6 +232,35 @@ Determinate only: Qt's `indeterminate` is not drawn (say what is happening in th
 label instead). The fill moves on `SuiTheme.duration`, so it jumps under reduced motion.
 `showLabel: false` and `showValue: false` leave the bare bar (`SuiTheme.progressHeight`).
 The app stops its task on `cancelRequested()` and clears `cancellable`.
+
+### Level meter
+
+```qml
+SuiLevelMeter { label: "Input level"; level: recorder.levelDb }          // dBFS, -60..0
+SuiLevelMeter {
+    label: "Microphone"; level: input.rmsDb
+    pinnedLevel: settings.gateDb; pinnedLabel: "Gate threshold"; pinEditable: true
+    onPinMoved: (level) => settings.gateDb = level
+}
+SuiLevelMeter { label: "Left"; orientation: Qt.Vertical; height: 180; level: left.db }
+```
+
+- `level` is in the meter's unit (`from`/`to`, default -60..0 dB; a linear 0..1 works
+  with `from: 0; to: 1; unit: ""`); `-Infinity` reads as silence (`-∞ dB`). The meter
+  draws each level as it arrives: no smoothing, so ballistics (VU, PPM) are the app's.
+  Nothing in it animates; reduced motion leaves it unchanged.
+- Zones: ok (`--sui-ok`) below `warnLevel` (-12), warn (`--sui-tone-yellow`) up to
+  `dangerLevel` (-3), danger (`--sui-tone-red`) above; the level reveals them.
+- Peak hold: `peak` holds the highest level for `SuiTheme.meterPeakHold` (1.5 s), then
+  drops to the level. Clip: `clipped` latches when the level reaches `clipLevel` (`to`)
+  and lights the lamp after the bar. `reset()` clears both.
+- The pinned-level marker is the app's (a target, a gate threshold; NaN hides it), drawn
+  in the accent with a halo. With `pinEditable` the user moves it: it is a Slider (Tab
+  stop, ring for keyboard focus) moved by the arrows (`pinStep`, default 1), PageUp /
+  PageDown (ten steps), Home/End, a drag or a click on the meter. `pinMoved(level)` fires
+  and `pinnedLevel` follows; write it back from the handler.
+- `showScale` (tick labels every `scaleStep`, or the smallest step whose labels do not
+  collide), `showValue` (`valueText`, `decimals`, `unit`), `showClip`, `peakHold`.
 
 ### Theme and motion
 
