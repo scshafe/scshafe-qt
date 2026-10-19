@@ -22,7 +22,8 @@ Window {
         { section: "Gallery", text: "Typography", iconName: "text", page: "type" },
         { section: "Gallery", text: "Controls", iconName: "sliders", page: "controls" },
         { section: "Gallery", text: "Table", iconName: "table", page: "table" },
-        { section: "Gallery", text: "Charts", iconName: "chart", page: "charts" }
+        { section: "Gallery", text: "Charts", iconName: "chart", page: "charts" },
+        { section: "Gallery", text: "Waveform", iconName: "waveform", page: "waveform" }
     ]
     property string page: "mail"
     function showPage(id) {
@@ -48,6 +49,12 @@ Window {
     function showCharts() {
         showPage("charts")
         pitchChart._inspect(1.6)
+    }
+    function showWaveform() {
+        showPage("waveform")
+        waveformPage.playing = false
+        waveformPage.position = 67200  // 1.4 s
+        takeWave.forceActiveFocus(Qt.TabFocusReason)  // as if tabbed to: the ring shows
     }
     readonly property var takes: makeTakes(10000)
     // 10,000 made-up takes for the Table and Charts pages.
@@ -635,6 +642,143 @@ Window {
                             values: root.takes.map(t => t.seconds)
                             binWidth: 2.5
                             tone: 3
+                        }
+                    }
+                }
+
+                Flickable {
+                    id: waveformPage
+                    objectName: "waveformPage"
+                    contentHeight: waveformColumn.implicitHeight + 2 * SuiTheme.spaceXl
+                    clip: true
+                    boundsBehavior: Flickable.StopAtBounds
+
+                    // A made-up take of 3 s at 48 kHz: three syllables over room tone,
+                    // as 2,048 min/max pairs (what an app computes from the samples).
+                    readonly property int rate: 48000
+                    readonly property int frames: 3 * rate
+                    readonly property var bins: makeBins(2048, 3)
+                    function makeBins(pairs, seed) {
+                        const out = []
+                        const rand = () => (seed = (seed * 1103515245 + 12345) % 2147483648) / 2147483648
+                        const bump = (t, at, width, peak) => peak * Math.exp(-Math.pow((t - at) / width, 2))
+                        for (let i = 0; i < pairs; ++i) {
+                            const t = i / pairs
+                            const envelope = 0.015 + bump(t, 0.24, 0.05, 0.8) + bump(t, 0.47, 0.07, 0.55)
+                                             + bump(t, 0.72, 0.045, 0.95) + 0.12 * Math.max(0, Math.sin(t * 90))
+                                               * bump(t, 0.47, 0.2, 1)
+                            out.push(-envelope * (0.55 + 0.45 * rand()), envelope * (0.55 + 0.45 * rand()))
+                        }
+                        return out
+                    }
+                    property int trimStart: 19200   // 0.4 s
+                    property int trimEnd: 129600    // 2.7 s
+                    property int position: trimStart
+                    property bool playing: false
+                    function play(frame) {
+                        position = frame
+                        playing = true
+                    }
+                    // A pretend player: 50 ms of frames a tick, to the end of the kept frames.
+                    Timer {
+                        interval: 50
+                        repeat: true
+                        running: waveformPage.playing
+                        onTriggered: {
+                            waveformPage.position += waveformPage.rate / 20
+                            if (waveformPage.position >= waveformPage.trimEnd) {
+                                waveformPage.position = waveformPage.trimEnd
+                                waveformPage.playing = false
+                            }
+                        }
+                    }
+
+                    ColumnLayout {
+                        id: waveformColumn
+                        x: SuiTheme.spaceXl
+                        y: SuiTheme.spaceXl
+                        width: parent.width - 2 * SuiTheme.spaceXl
+                        spacing: SuiTheme.spaceMd
+
+                        SuiText { text: "Waveform"; variant: "title" }
+                        SuiText {
+                            Layout.fillWidth: true
+                            text: "Drag a handle to trim, or Tab to it and use the arrows. Click or drag to seek; "
+                                  + "Left and Right step a tenth of a second; double-click plays."
+                            variant: "caption"
+                            wrapMode: Text.Wrap
+                        }
+                        SuiWaveform {
+                            id: takeWave
+                            objectName: "takeWave"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 140
+                            label: "Take 12"
+                            bins: waveformPage.bins
+                            frameCount: waveformPage.frames
+                            sampleRate: waveformPage.rate
+                            trimStart: waveformPage.trimStart
+                            trimEnd: waveformPage.trimEnd
+                            playhead: waveformPage.position
+                            editable: editableSwitch.checked
+                            onTrimChanged: (start, end) => {
+                                waveformPage.trimStart = start
+                                waveformPage.trimEnd = end
+                                waveformPage.position = Math.max(start, Math.min(waveformPage.position, end))
+                            }
+                            onSeekRequested: (frame) => waveformPage.position = frame
+                            onPlayRequested: (frame) => waveformPage.play(frame)
+                        }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: SuiTheme.spaceMd
+                            SuiButton {
+                                objectName: "playButton"
+                                text: waveformPage.playing ? "Pause" : "Play"
+                                onClicked: {
+                                    if (waveformPage.playing)
+                                        waveformPage.playing = false
+                                    else
+                                        waveformPage.play(waveformPage.position >= waveformPage.trimEnd
+                                                          ? waveformPage.trimStart : waveformPage.position)
+                                }
+                            }
+                            SuiText {
+                                objectName: "waveformTimes"
+                                Layout.fillWidth: true
+                                text: "Kept " + takeWave.formatTime(takeWave.shownStart) + " to "
+                                      + takeWave.formatTime(takeWave.shownEnd) + "  ·  playhead "
+                                      + takeWave.formatTime(waveformPage.position)
+                                tabular: true
+                                tone: "muted"
+                            }
+                            SuiSwitch {
+                                id: editableSwitch
+                                objectName: "editableSwitch"
+                                text: "Editable"
+                                checked: true
+                            }
+                        }
+
+                        SuiText { text: "Read-only"; variant: "label"; Layout.topMargin: SuiTheme.spaceSm }
+                        SuiWaveform {
+                            objectName: "readOnlyWave"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 80
+                            label: "Take 11"
+                            bins: waveformPage.makeBins(600, 11)
+                            frameCount: 2 * waveformPage.rate
+                            trimStart: 12000
+                            editable: false
+                        }
+
+                        SuiText { text: "No take yet"; variant: "label"; Layout.topMargin: SuiTheme.spaceSm }
+                        SuiWaveform {
+                            objectName: "emptyWave"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 80
+                            label: "New take"
+                            placeholderText: "Record a take to see its waveform"
                         }
                     }
                 }
