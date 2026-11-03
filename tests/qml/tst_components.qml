@@ -434,6 +434,25 @@ Item {
             compare(findChild(shell, "inspectorPane").width, 240)
         }
 
+        function test_shell_pin_and_shortcut() {
+            shell.sidebarHideable = true
+            shell.sidebarShortcut = "Ctrl+Shift+S"
+            const pin = findChild(shell, "sidebarPin")
+            verify(pin.visible)
+            compare(pin.Accessible.role, Accessible.CheckBox)
+            compare(pin.Accessible.name, "Pin sidebar")
+            verify(pin.checked)
+            mouseClick(pin)
+            verify(!shell.sidebarOpen)
+            verify(!pin.checked)
+            compare(findChild(shell, "contentPane").x, 0)
+            keyClick(Qt.Key_S, Qt.ControlModifier | Qt.ShiftModifier)
+            verify(shell.sidebarOpen)
+            verify(pin.checked)
+            shell.sidebarShortcut = ""
+            shell.sidebarHideable = false
+        }
+
         function test_dialog_trap_escape_and_return() {
             opener.forceActiveFocus(Qt.TabFocusReason)
             keyClick(Qt.Key_Space)

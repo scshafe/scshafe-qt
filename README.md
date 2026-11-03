@@ -87,7 +87,7 @@ Imports are versionless (`import Scshafe.Ui`).
 
 | Component | What it is | Keyboard / accessibility |
 | --- | --- | --- |
-| `SuiAppShell` | sidebar \| content \| inspector frame; `sidebar`, `content`, `inspector` slots; `inspectorOpen` / `sidebarOpen` collapse a pane | splitters are Tab stops (role Separator): ←/→ resize by `resizeStep` (Shift ×4), Home/End min/max, Enter collapses; drag resizes; panes are named Panes |
+| `SuiAppShell` | sidebar \| content \| inspector frame; `sidebar`, `content`, `inspector` slots; `inspectorOpen` / `sidebarOpen` collapse a pane; `sidebarHideable`: a pin docks / hides the sidebar, and while hidden, hovering the content's top-left corner reveals it as an overlay; `sidebarShortcut` toggles it; `settingsCategory` persists it | splitters are Tab stops (role Separator): ←/→ resize by `resizeStep` (Shift ×4), Home/End min/max, Enter collapses; drag resizes; panes are named Panes; the pin is a CheckBox (`pinLabel`); a hidden sidebar is out of the Tab order (the shortcut docks it) |
 | `SuiSidebarList` + `SuiSidebarItem` | navigation list: icon, label, count badge, health dot (`status`: `ok` / `held` / `failing` / `none`), section headers (`section` role) | one Tab stop; ↑/↓ Home/End PgUp/PgDn move (skip disabled), Enter/Return/Space activate (`activated(index)`, `selectedIndex`); status and count in the accessible description |
 | `SuiList` + `SuiListRow` | single-selection `ListView` (`currentIndex`) of two-line rows (`title`, `subtitle`, `meta`, `unread`; children go to a trailing slot) | one Tab stop; ↓/`j`, ↑/`k` emit `nextRequested()` / `previousRequested()` and move (unless `autoNavigate: false`); Enter / double-click emit `activated(index)`; `selectNext()` etc. for app shortcuts |
 | `SuiChip`, `SuiBadge` | pills: `tone` `neutral` / `info` / `ok` / `warn` / `danger` or a bucket `bucket1`…`bucket8` (or 1–8); badge shows `count` (99+) | StaticText named by the text |
@@ -373,6 +373,43 @@ SuiWaveform {
 - Seeking (press, drag, ←/→, Home/End) stays within the kept frames; a double-click in
   them asks to play from that frame. `hoverFrame` / `hoverText` (m:ss.mmm) are the time
   under the pointer; `placeholderText` shows while there are no bins. Nothing animates.
+
+### Hideable sidebar
+
+```qml
+SuiAppShell {
+    sidebarHideable: true
+    sidebarShortcut: "Ctrl+Meta+S"        // ⌃⌘S on macOS; the app chooses ("" = none)
+    settingsCategory: "shell"             // keep docked / hidden and the width
+    sidebar: ...; content: ...
+}
+```
+
+- `sidebarOpen` is docked; closed is hidden. With `sidebarHideable`, a pin button
+  (`pin` icon, checked while docked, named `pinLabel`) sits in the sidebar's top-right
+  corner: in the docked sidebar it hides it, in the overlay it docks it. Leave that
+  corner of the sidebar free.
+- While hidden, resting the pointer in a `SuiTheme.sidebarRevealSize` square at the
+  content's top-left for `SuiTheme.sidebarRevealDelay` slides the sidebar in as an
+  overlay above the content, which does not move or reflow (`sidebarRevealed`). It
+  stays while the pointer is over it and slides away `SuiTheme.sidebarHideDelay` after
+  the pointer leaves; focus inside it then moves to the content. The corner only
+  listens for hover: clicks reach the content under it.
+- macOS: the corner starts at `sidebarRevealTop`, by default the shell's
+  `SafeArea.margins.top`. In a window whose content extends under the title bar
+  (`Qt.ExpandedClientAreaHint`) that is the title bar's height, so the corner sits
+  below it and never over the traffic lights; in an ordinary window it is 0. An app that
+  draws its own title band sets `sidebarRevealTop` to its bottom.
+- `sidebarShortcut` (a window shortcut) calls `toggleSidebar()`; from the overlay it
+  docks. A hidden sidebar is out of the Tab order, so keyboard and screen-reader users
+  dock it with the shortcut (or a menu item calling `toggleSidebar()`).
+- `settingsCategory` keeps `sidebarOpen` and `sidebarWidth` in QtCore `Settings`,
+  restored on load without animating and written on change. Set the application's
+  `organizationName` and `applicationName` (as for any `QSettings`), or point
+  `settingsLocation` at a file. Do not bind `sidebarOpen` then: the restore assigns it.
+- Docking and hiding move the content on `SuiTheme.duration`; the overlay slides in on
+  twice that and out on it; under reduced motion both are instant (the delays stay).
+  A collapsing sidebar now slides out at full width (0.9 squeezed it).
 
 ### Info tip
 

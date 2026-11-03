@@ -309,6 +309,9 @@ QtObject {
     readonly property int sheetWidth: 400
     readonly property int toastWidth: 360
     readonly property int toastTimeout: 5000      // ms a toast stays (0 = until dismissed)
+    readonly property int sidebarRevealSize: 24   // the hidden sidebar's hot zone (a square at the content's top-left)
+    readonly property int sidebarRevealDelay: 150 // ms in the hot zone before the sidebar slides in
+    readonly property int sidebarHideDelay: 400   // ms after the pointer leaves before it slides away
 
     // ---- Type scale (pixel sizes the stylesheets use) and weights -------
     readonly property int fontSizeXs: 11

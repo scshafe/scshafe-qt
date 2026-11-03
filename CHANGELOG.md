@@ -31,6 +31,26 @@ are never deleted, replaced or reused.
   `infoTipCloseDelay`.
 - `SuiIcon`: built-in `help` icon.
 - Gallery: info tips beside "Sample rate" and "Gain" on the Controls page.
+- **Hideable sidebar** (`SuiAppShell`, opt-in `sidebarHideable`): the sidebar is
+  docked (`sidebarOpen`) or hidden.
+  - A pin button (`pinLabel`, CheckBox, checked while docked) in the sidebar's
+    top-right corner hides and docks it.
+  - While hidden, resting the pointer in a `SuiTheme.sidebarRevealSize` square at the
+    content's top-left (from `sidebarRevealTop`, by default `SafeArea.margins.top`:
+    below a macOS title bar the content extends under, never over the traffic lights)
+    for `SuiTheme.sidebarRevealDelay` slides it in as an overlay that does not move the
+    content (`sidebarRevealed`); it slides away `SuiTheme.sidebarHideDelay` after the
+    pointer leaves, and focus inside it moves to the content. Docking from the overlay
+    moves only the content.
+  - `sidebarShortcut` ("" by default; the app chooses, e.g. "Ctrl+Meta+S") toggles it.
+  - `settingsCategory` / `settingsLocation`: `sidebarOpen` and `sidebarWidth` persist in
+    QtCore `Settings` (restored on load without animating).
+  - Motion on `SuiTheme.duration` (the overlay slides in on twice it), instant under
+    reduced motion. A collapsing sidebar now slides out at full width instead of being
+    squeezed; the Tab order and the inspector are unchanged.
+- `SuiTheme` NATIVE-ONLY: `sidebarRevealSize`, `sidebarRevealDelay`, `sidebarHideDelay`.
+- `SuiIcon`: built-in `pin` icon.
+- Gallery: the shell is hideable (⌃⌘S / Ctrl+Super+S toggles; listed under `?`).
 - Design note for the 0.10.0 additions: `docs/design/0.10.0.md`.
 
 ## 0.9.0 — 2026-10-19
