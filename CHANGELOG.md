@@ -7,6 +7,12 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+## 0.10.0 — 2026-11-02
+
+An info tip, a hideable sidebar and a list header, for voice-lab first and every app
+after. Additive: no existing API changes and default behaviour is unchanged, except
+that a collapsing sidebar now slides out at full width instead of being squeezed.
+
 - **`SuiInfoTip`**: a small info (or `help`) button whose popover shows details, so
   secondary text can leave the layout (`title`, `text`, `label`, `iconName`,
   `placement`, `delay`, `open()` / `close()` / `toggle()`, `opened`,

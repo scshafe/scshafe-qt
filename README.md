@@ -13,9 +13,10 @@ type and motion.
 - Python **3.12, 3.13 and 3.14** (`requires-python >=3.12`, from 0.2.0; 0.1.x needed
   3.14). CI tests all three. The PySide6 6.11 wheels are abi3 for CPython 3.10+ and
   declare `requires-python <3.15`, so a newer Python waits for a PySide6 that supports it.
-- Status: **0.9.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
+- Status: **0.10.0**: `SuiTheme` (tokens), the v0.1 component set, `SuiText`
   (typography), the form controls, `SuiProgressBar`, `SuiLevelMeter`, `SuiTable`,
-  `SuiChart`, `SuiHistogram` and `SuiWaveform` below.
+  `SuiChart`, `SuiHistogram`, `SuiWaveform`, `SuiInfoTip`, `SuiListHeader` and the
+  hideable sidebar below.
 - **Untrusted text is safe to pass:** every component renders caller strings as plain text
   (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
   The one exception, `SuiInfoTip`'s body, renders a fixed subset (bold, italic, code,
@@ -33,7 +34,8 @@ uv add scshafe-qt            # or: pip install scshafe-qt
 
 Minor releases add components and keep the existing API (0.3.0: `SuiText`; 0.4.0: form
 controls; 0.5.0: `SuiProgressBar`; 0.6.0: `SuiLevelMeter`;
-0.7.0: `SuiTable`; 0.8.0: `SuiChart`, `SuiHistogram`; 0.9.0: `SuiWaveform`); an app
+0.7.0: `SuiTable`; 0.8.0: `SuiChart`, `SuiHistogram`; 0.9.0: `SuiWaveform`; 0.10.0:
+`SuiInfoTip`, `SuiListHeader`, the hideable sidebar); an app
 pinned below the new minor (`scshafe-qt>=0.2,<0.3`) stays where it is until it widens
 the range. 0.2.0 changed only the supported Python range.
 
