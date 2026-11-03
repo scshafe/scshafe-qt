@@ -7,6 +7,32 @@ are never deleted, replaced or reused.
 
 ## Unreleased
 
+- **`SuiInfoTip`**: a small info (or `help`) button whose popover shows details, so
+  secondary text can leave the layout (`title`, `text`, `label`, `iconName`,
+  `placement`, `delay`, `open()` / `close()` / `toggle()`, `opened`,
+  `linkActivated(link)`).
+  - Hover opens it after `SuiTheme.infoTipDelay` and it closes
+    `SuiTheme.infoTipCloseDelay` after the pointer leaves the button and the popover;
+    a click opens and pins it until a click outside or on the button again.
+  - It never takes focus: a click does not focus the button (`Qt.TabFocus`) and the
+    popover is never focused, so an app's keys keep working while a tip is open.
+    Keyboard: a Tab stop with the ring; Space / Return toggle, Escape closes (and
+    propagates when closed); focus leaving closes a tip the keyboard opened.
+  - Placement below (or `above`), flipped when that side lacks room, kept
+    `SuiTheme.spaceSm` inside the window; text wraps at `SuiTheme.infoTipMaxWidth`.
+  - The body renders a sanitised markup subset (`<b>`, `<strong>`, `<i>`, `<em>`,
+    `<code>`, `<br>`, `<p>`, `<ul>`, `<ol>`, `<li>`, `<a href>`); any other tag or a
+    stray `<` / `&` shows as text, so nothing is fetched. It is the module's one
+    exception to plain caller text, and `tests/test_plain_text.py` checks it with the
+    beacon. `textFormat: Text.PlainText` shows the body as it is.
+  - Accessible: Button named by `label` ("About <title>"), described by the title and
+    the plain body; the popover is a HelpBalloon.
+- `SuiTheme` NATIVE-ONLY: `infoTipSize`, `infoTipMaxWidth`, `infoTipDelay`,
+  `infoTipCloseDelay`.
+- `SuiIcon`: built-in `help` icon.
+- Gallery: info tips beside "Sample rate" and "Gain" on the Controls page.
+- Design note for the 0.10.0 additions: `docs/design/0.10.0.md`.
+
 ## 0.9.0 — 2026-10-19
 
 Waveform. Additive; no existing API changes.

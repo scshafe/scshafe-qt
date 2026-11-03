@@ -24,6 +24,7 @@ Item {
 
         SuiSearchField { id: search; width: 240 }
         SuiIconButton { id: iconButton; label: "Dismiss"; icon.name: "close" }
+        SuiInfoTip { id: infoTip; title: "Trim"; text: "Keep <b>part</b> of the take." }
         SuiChip { id: chip; text: "Receipts"; tone: "bucket1" }
         SuiText { id: heading; text: "Recordings"; variant: "title" }
         SuiSidebarList {
@@ -179,6 +180,22 @@ Item {
             compare(iconButton.Accessible.role, Accessible.Button)
             iconButton.forceActiveFocus(Qt.TabFocusReason)
             verify(findChild(iconButton, "focusRing").visible)
+        }
+
+        function test_info_tip_keys_and_description() {
+            compare(infoTip.Accessible.role, Accessible.Button)
+            compare(infoTip.Accessible.name, "About Trim")
+            compare(infoTip.Accessible.description, "Trim. Keep part of the take.")
+            infoTip.forceActiveFocus(Qt.TabFocusReason)
+            verify(findChild(infoTip, "focusRing").visible)
+            keyClick(Qt.Key_Space)
+            verify(infoTip.opened)
+            verify(infoTip.activeFocus)  // the popover never takes focus
+            keyClick(Qt.Key_Escape)
+            verify(!infoTip.opened)
+            mouseClick(infoTip)
+            verify(infoTip.opened)
+            infoTip.close()
         }
 
         function test_chip_follows_the_theme() {

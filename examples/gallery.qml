@@ -350,7 +350,18 @@ Window {
                                 Layout.alignment: Qt.AlignTop
                                 Layout.fillWidth: true
                                 spacing: SuiTheme.spaceMd
-                                SuiText { text: "Sample rate"; variant: "section" }
+                                RowLayout {
+                                    spacing: SuiTheme.spaceXs
+                                    SuiText { text: "Sample rate"; variant: "section" }
+                                    SuiInfoTip {
+                                        objectName: "rateTip"
+                                        iconName: "help"
+                                        title: "Sample rate"
+                                        text: "Samples per second of every new take. <b>48 kHz</b> matches most"
+                                              + " interfaces; 16 kHz is enough for speech models.<br>Existing takes"
+                                              + " keep theirs."
+                                    }
+                                }
                                 Column {
                                     objectName: "rateGroup"
                                     spacing: SuiTheme.spaceXs
@@ -366,7 +377,16 @@ Window {
                                     label: "Input"
                                     model: ["Desk microphone", "Headset", "Line in", "System audio"]
                                 }
-                                SuiText { text: "Gain"; variant: "label" }
+                                RowLayout {
+                                    spacing: SuiTheme.spaceXs
+                                    SuiText { text: "Gain"; variant: "label" }
+                                    SuiInfoTip {
+                                        objectName: "gainTip"
+                                        title: "Input gain"
+                                        text: "Applied before the level meter. Aim for peaks around"
+                                              + " <code>-12 dB</code>; the meter turns <b>warn</b> above -6 dB."
+                                    }
+                                }
                                 SuiSlider {
                                     objectName: "gainSlider"
                                     Layout.fillWidth: true
