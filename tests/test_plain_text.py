@@ -104,12 +104,13 @@ def _scene(port: int) -> str:
                 steps: [{{ title: root.p, outcome: root.p, via: root.p, detail: root.p, warningText: root.p }}] }}
         }}
     }}
+    SuiInfoTip {{ id: tip; x: 600; y: 20; title: root.p; text: root.p; label: root.p }}
     SuiToastHost {{ id: host; anchors.fill: parent }}
     SuiDialog {{ id: dialog; title: root.p; description: root.p }}
     SuiSheet {{ id: sheet; title: root.p; description: root.p }}
     SuiShortcutOverlay {{ id: overlay
         shortcuts: [{{ group: root.p, keys: [root.p], description: root.p }}] }}
-    Component.onCompleted: {{ host.show(root.p); dialog.open(); sheet.open(); overlay.open(); select.popup.open() }}
+    Component.onCompleted: {{ host.show(root.p); dialog.open(); sheet.open(); overlay.open(); select.popup.open(); tip.open() }}
     """
 
 
@@ -128,6 +129,11 @@ def test_markup_in_caller_text_never_renders_or_fetches(engine, qtbot, beacon):
     assert rich == [], f"Text items not plain: {rich}"
 
 
+# The one exception: SuiInfoTip's body renders a sanitised markup subset, never an <img>
+# (test_info_tip_body_is_sanitised).
+SANITISED = {("SuiInfoTip.qml", "textFormat: tip._bodyFormat")}
+
+
 def test_every_text_in_the_module_is_plain():
     from pathlib import Path
     import re
@@ -140,6 +146,27 @@ def test_every_text_in_the_module_is_plain():
         lines = qml.read_text().splitlines()
         for i, line in enumerate(lines):
             if re.search(r"\bText\s*\{\s*$", line) and not line.strip().startswith("//"):
-                if "textFormat: Text.PlainText" not in lines[i + 1]:
+                following = lines[i + 1].split("//")[0].strip()
+                if "textFormat: Text.PlainText" not in following and (qml.name, following) not in SANITISED:
                     missing.append(f"{qml.name}:{i + 1}")
     assert missing == [], f"Text without textFormat: Text.PlainText: {missing}"
+
+
+def test_info_tip_body_is_sanitised(engine, qtbot, beacon):
+    """The tip's body keeps its markup subset and shows anything else as text: no fetch."""
+    port = beacon.server_address[1]
+    window = window_scene(
+        engine, qtbot,
+        f'SuiInfoTip {{ id: tip; objectName: "tip"; x: 40; y: 40; title: "Trim"\n'
+        f'    text: "<img src=\\"http://127.0.0.1:{port}/beacon.png\\"><b>x</b>"\n'
+        f'    Component.onCompleted: tip.open() }}',
+    )
+    from conftest import find
+
+    body = find(window, "infoTipBody")
+    for _ in range(10):
+        window.grabWindow()
+        qtbot.wait(100)
+    assert body.property("text") == f'&lt;img src="http://127.0.0.1:{port}/beacon.png"&gt;<b>x</b>'
+    assert _Beacon.hits == 0, f"the tip fetched the beacon {_Beacon.hits} time(s)"
+    window.close()

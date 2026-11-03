@@ -18,6 +18,8 @@ type and motion.
   `SuiChart`, `SuiHistogram` and `SuiWaveform` below.
 - **Untrusted text is safe to pass:** every component renders caller strings as plain text
   (`textFormat: Text.PlainText`); markup is shown literally and never fetches anything.
+  The one exception, `SuiInfoTip`'s body, renders a fixed subset (bold, italic, code,
+  lists, links) and shows any other tag as text, so it cannot fetch either.
   0.1.0 rendered HTML-looking strings as rich text (fixed in 0.1.1; upgrade).
 
 ## Install (consumers)
@@ -107,6 +109,7 @@ Imports are versionless (`import Scshafe.Ui`).
 | `SuiProgressBar` | determinate progress (`from`, `to`, `value`): `label` above, `valueText` beside (a percentage by default), `tone` `accent` / `ok` / `warn` / `danger`; `cancellable` adds a cancel button emitting `cancelRequested()` | ProgressBar named by `label`, described by `valueText`, Qt's value interface; the cancel button is a Tab stop named `cancelLabel` ("Cancel <label>") |
 | `SuiTable` | sortable, virtualised data table (`columns`, `rows`: a JS array or a Python list of dicts; 10,000 rows sort in ~20 ms and scroll at ~3 ms a frame); resizable columns (`columnWidths`, `columnResized`), row selection (`selectionMode` single / multiple / none, `selectedRows`, `currentRow`, `rowKey` keeps it across new rows), `format` / `tone` per column | Table named by `label`; the header is one Tab stop (←/→ between ColumnHeaders, Enter/Space sort, Ctrl+←/→ resize), the body another (↑/↓ PgUp/PgDn Home/End, Shift extends, Ctrl moves without selecting, Space toggles, Ctrl+A, Enter / double-click `activated(row)`); rows are ListItems named "Title: value, …" |
 | `SuiWaveform` | a recording's waveform (`bins`: min/max pairs in -1..1) over `frameCount` frames at `sampleRate`, the kept frames `trimStart`..`trimEnd` (the rest shaded), a `playhead`; controlled: `seekRequested(frame)` on press, drag or a key, `trimChanged(start, end)` when a handle is released (`editable`), `playRequested(frame)` on a double-click; the time under the pointer | Slider named by `label`, described "kept X to Y of Z seconds", value interface in seconds; ←/→ step 0.1 s from the playhead, Home/End the kept edges; with `editable` each handle is a Slider Tab stop (←/→ 0.1 s, PgUp/PgDn 1 s, Home/End) |
+| `SuiInfoTip` | a small info (or `help`) button whose popover shows a `title` and a `text` body in a safe markup subset (`<b>`, `<i>`, `<code>`, lists, links → `linkActivated`); opens on hover after `SuiTheme.infoTipDelay`, pins on a click, stays inside the window (`placement` below / above, flipped when there is no room) | a Tab stop (a click never takes focus, the popover never does): Space/Return toggle, Escape closes; Button named by `label` ("About <title>"), described by the title and body |
 | `SuiText` | text in a type style: `variant` `display` / `title` / `heading` / `subheading` / `section` / `label` / `body` / `caption` / `small` / `code`; `tone` overrides the colour; `tabular` digits | heading variants are Headings, the rest StaticText, named by the text; plain text |
 | `SuiIcon`, `SuiKbd` | built-in vector icons (`SuiIcon.names`) or a tinted image; a keyboard-key badge | icons are decorative unless given a `label` |
 
@@ -370,6 +373,35 @@ SuiWaveform {
 - Seeking (press, drag, ←/→, Home/End) stays within the kept frames; a double-click in
   them asks to play from that frame. `hoverFrame` / `hoverText` (m:ss.mmm) are the time
   under the pointer; `placeholderText` shows while there are no bins. Nothing animates.
+
+### Info tip
+
+```qml
+RowLayout {
+    SuiText { text: "Gain"; variant: "label" }
+    SuiInfoTip {
+        title: "Input gain"
+        text: "Applied before the meter. Aim for peaks around <code>-12 dB</code>."
+    }
+}
+```
+
+- Hover opens it after `SuiTheme.infoTipDelay` (400 ms); it closes
+  `SuiTheme.infoTipCloseDelay` after the pointer leaves the button and the popover
+  (moving into the popover keeps it, for its links). A click opens and pins it until a
+  click outside or on the button again. `open()`, `close()`, `toggle()`, `opened`.
+- It never takes focus: a click does not focus the button and the popover is never
+  focused, so the app's own keys keep working while a tip is open. Keyboard users Tab
+  to it: Space / Return toggle, Escape closes (and propagates once it is closed).
+- The body (`text`) is the one place the module renders markup, and only a subset:
+  `<b>` `<strong>` `<i>` `<em>` `<code>` `<br>` `<p>` `<ul>` `<ol>` `<li>` and
+  `<a href>`, with every other attribute dropped. Anything else (an `<img>`, `<font>`,
+  a stray `<` or `&`) shows as text, so nothing is ever fetched; newlines break lines.
+  Links only emit `linkActivated(link)`. `textFormat: Text.PlainText` shows the body as
+  it is; the title is always plain.
+- Placement: centred on the button, `placement` `"below"` (default) or `"above"`,
+  flipped when that side lacks room and the other has more, and kept `SuiTheme.spaceSm`
+  inside the window; the text wraps at `SuiTheme.infoTipMaxWidth`.
 
 ### Theme and motion
 

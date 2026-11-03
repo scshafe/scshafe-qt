@@ -51,6 +51,11 @@ SPECS: dict[str, Spec] = {
         'SuiIconButton { objectName: "subject"; x: 40; y: 40; label: "Dismiss"; icon.name: "close" }',
         R.Button, "Dismiss", True, "subject",
     ),
+    # A click must not take focus from the app's keys: pointer None (test_infotip.py checks it).
+    "SuiInfoTip": Spec(
+        'SuiInfoTip { objectName: "subject"; x: 40; y: 40; title: "Trim"; text: "Keep <b>part</b> of the take." }',
+        R.Button, "About Trim", True,
+    ),
     "SuiTextField": Spec(
         'SuiTextField { objectName: "subject"; x: 40; y: 40; width: 220; label: "Note"; placeholderText: "Add a note" }',
         R.EditableText, "Note", True,

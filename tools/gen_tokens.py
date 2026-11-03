@@ -430,6 +430,10 @@ _NATIVE_HEAD = """
     readonly property int waveformHandleWidth: 10  // trim handle grip
     readonly property int waveformHandleHeight: 36
     readonly property int waveformHandleReach: 16  // px either side of a trim edge that grab its handle
+    readonly property int infoTipSize: 20          // the info button
+    readonly property int infoTipMaxWidth: 320     // popover text width (.sui-tooltip max-width)
+    readonly property int infoTipDelay: 400        // ms of hover before it opens (HoverCard openDelayMs)
+    readonly property int infoTipCloseDelay: 120   // ms after the pointer leaves (HoverCard closeDelayMs)
     // Marks on an accent fill (check marks, radio dots, switch thumbs): the panel
     // (white) on the light theme's dark accent, the page background on the dark
     // theme's light accent; >= 4.5:1 on --sui-accent in both (tests/test_tokens.py).

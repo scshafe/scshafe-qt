@@ -94,6 +94,7 @@ Window {
             SuiWaveform { width: 300; height: 80; label: "Take"; bins: [-0.5, 0.5]; frameCount: 48000
                           Component.onCompleted: built++ }
             SuiIconButton { label: "Close"; icon.name: "close"; Component.onCompleted: built++ }
+            SuiInfoTip { title: "Trim"; text: "Keep <b>part</b> of the take."; Component.onCompleted: built++ }
             SuiTextField { label: "Note"; Component.onCompleted: built++ }
             SuiSearchField { Component.onCompleted: built++ }
             SuiChip { text: "Receipts"; tone: "bucket1"; Component.onCompleted: built++ }
@@ -116,7 +117,7 @@ Window {
     SuiShortcutOverlay { shortcuts: [{ keys: ["?"], description: "Help" }]; Component.onCompleted: built++ }
 }
 """
-SMOKE_COMPONENTS = 33  # public components in qmldir, each built once above
+SMOKE_COMPONENTS = 34  # public components in qmldir, each built once above
 
 
 def one(dist: Path, pattern: str) -> Path:

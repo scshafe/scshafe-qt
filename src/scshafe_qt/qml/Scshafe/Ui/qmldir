@@ -12,6 +12,7 @@ SuiEmptyState 1.0 SuiEmptyState.qml
 SuiHistogram 1.0 SuiHistogram.qml
 SuiIcon 1.0 SuiIcon.qml
 SuiIconButton 1.0 SuiIconButton.qml
+SuiInfoTip 1.0 SuiInfoTip.qml
 SuiKbd 1.0 SuiKbd.qml
 SuiLevelMeter 1.0 SuiLevelMeter.qml
 SuiList 1.0 SuiList.qml
