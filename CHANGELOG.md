@@ -51,6 +51,28 @@ are never deleted, replaced or reused.
 - `SuiTheme` NATIVE-ONLY: `sidebarRevealSize`, `sidebarRevealDelay`, `sidebarHideDelay`.
 - `SuiIcon`: built-in `pin` icon.
 - Gallery: the shell is hideable (⌃⌘S / Ctrl+Super+S toggles; listed under `?`).
+- **`SuiListHeader`**: a compact header for above a list: a search field, an optional
+  result count and a funnel button with a menu of filters.
+  - Search: `text`, `searchLabel`, `placeholderText`, `searchField`; `textEdited()`,
+    `cleared()`. `focusShortcut` ("Ctrl+F", ⌘F on macOS) focuses and selects it from
+    anywhere in the window, another text field included; Escape clears it.
+  - Filters: `filters` (`{ key, text, section, exclusive }`, JS arrays or Python lists)
+    and `activeFilters` (keys, updated by the menu and settable by the app);
+    `filterToggled(key, active)` per change, an exclusive section one choice;
+    `clearFilters()`, `filtersCleared()`, `toggleFilter(key)`, `openFilters()`,
+    `filterCount`.
+  - The funnel is tinted with a count badge while any filter is active and hidden
+    without filters. Its menu (T.Menu: section headers, checkable items, "Clear
+    filters") closes after a choice and returns focus to the button; Space / Return /
+    ↓ open it at the first option.
+  - `resultCount` / `totalCount` show "12" or "12 of 340" (`countText` overrides).
+  - Accessible: a ToolBar named `label`; the funnel a ButtonMenu named `filterLabel`,
+    described by the active filters; options are MenuItems with their checked state.
+- `SuiTextField` / `SuiSearchField`: `compact` (`SuiTheme.controlHeightSm` high,
+  `fontSizeSm`, a small search icon). Default sizes are unchanged.
+- `SuiTheme` NATIVE-ONLY: `controlHeightSm`, `menuMinWidth`, `filterBadgeSize`.
+- Gallery: the Table page filters its 10,000 takes with a list header (speaker, SNR,
+  score; ⌘F / Ctrl+F).
 - Design note for the 0.10.0 additions: `docs/design/0.10.0.md`.
 
 ## 0.9.0 — 2026-10-19

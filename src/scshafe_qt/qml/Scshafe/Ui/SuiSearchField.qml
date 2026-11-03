@@ -8,6 +8,7 @@
 // - Escape clears a non-empty field (`cleared()`); on an empty field it
 //   propagates (so a dialog can close).
 // - The clear button is not in the Tab order (Escape does the same).
+// - `compact` (SuiTextField's): SuiTheme.controlHeightSm high, small icons.
 import QtQuick
 
 SuiTextField {
@@ -17,9 +18,11 @@ SuiTextField {
     signal focusRequested()
     signal cleared()
 
+    readonly property int _iconSize: compact ? SuiTheme.iconSizeSm : SuiTheme.iconSize
+
     label: "Search"
     placeholderText: "Search"
-    leftPadding: SuiTheme.spaceSm + SuiTheme.iconSize + SuiTheme.spaceXs + 2
+    leftPadding: SuiTheme.spaceSm + _iconSize + SuiTheme.spaceXs + 2
     rightPadding: clearButton.visible ? clearButton.width + SuiTheme.spaceXs : SuiTheme.spaceSm
     inputMethodHints: Qt.ImhNoPredictiveText
 
@@ -49,7 +52,7 @@ SuiTextField {
     SuiIcon {
         objectName: "searchIcon"
         name: "search"
-        size: SuiTheme.iconSize
+        size: control._iconSize
         color: SuiTheme.muted
         x: SuiTheme.spaceSm
         anchors.verticalCenter: parent.verticalCenter

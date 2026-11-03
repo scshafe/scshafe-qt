@@ -92,7 +92,8 @@ Imports are versionless (`import Scshafe.Ui`).
 | `SuiList` + `SuiListRow` | single-selection `ListView` (`currentIndex`) of two-line rows (`title`, `subtitle`, `meta`, `unread`; children go to a trailing slot) | one Tab stop; ↓/`j`, ↑/`k` emit `nextRequested()` / `previousRequested()` and move (unless `autoNavigate: false`); Enter / double-click emit `activated(index)`; `selectNext()` etc. for app shortcuts |
 | `SuiChip`, `SuiBadge` | pills: `tone` `neutral` / `info` / `ok` / `warn` / `danger` or a bucket `bucket1`…`bucket8` (or 1–8); badge shows `count` (99+) | StaticText named by the text |
 | `SuiButton`, `SuiIconButton` | buttons; the icon button needs `label` (its accessible name; a `required` property) and `icon.name` (built-in) or `icon.source`; `checkable` toggles | Space/Enter; role Button (CheckBox when checkable) |
-| `SuiTextField`, `SuiSearchField` | inputs; search has an icon, a clear button and a `/` hook | `/` anywhere (not while typing in another field) fires `focusRequested()` then focuses and selects; Escape clears (`cleared()`), then propagates |
+| `SuiTextField`, `SuiSearchField` | inputs; search has an icon, a clear button and a `/` hook; `compact` makes either `SuiTheme.controlHeightSm` high | `/` anywhere (not while typing in another field) fires `focusRequested()` then focuses and selects; Escape clears (`cleared()`), then propagates |
+| `SuiListHeader` | a compact header for above a list: a search field, an optional result count (`resultCount`, `totalCount`) and a funnel button whose menu toggles `filters` (`{ key, text, section, exclusive }`) into `activeFilters`, with Clear; tinted with a count badge while any filter is active | ⌘F / Ctrl+F (`focusShortcut`) focuses the search from anywhere, Escape clears it; the funnel is a ButtonMenu (Space / Return / ↓ open the menu at the first option, Escape closes, focus returns), described by the active filters; a ToolBar named `label` |
 | `SuiEmptyState` | icon, title, description, action slot | Grouping named by the title |
 | `SuiBanner` | inline status (`tone` info / ok / warn / danger), `dismissible` | warn/danger are AlertMessages; the dismiss button is a Tab stop |
 | `SuiToast`, `SuiToastHost` | `host.show(text, { title, tone, timeout, actionText, onAction })`, `dismiss(id)`, `clear()`; stacks bottom-right, at most `maxToasts` | AlertMessage; announced with `Accessible.announce` (assertive for danger); the timeout pauses on hover / focus; Escape dismisses |
@@ -373,6 +374,44 @@ SuiWaveform {
 - Seeking (press, drag, ←/→, Home/End) stays within the kept frames; a double-click in
   them asks to play from that frame. `hoverFrame` / `hoverText` (m:ss.mmm) are the time
   under the pointer; `placeholderText` shows while there are no bins. Nothing animates.
+
+### List header
+
+```qml
+ColumnLayout {
+    SuiListHeader {
+        Layout.fillWidth: true
+        searchLabel: "Search prompts"
+        filters: [
+            { key: "missing", text: "Missing", section: "Show", exclusive: true },
+            { key: "kept", text: "Kept", section: "Show", exclusive: true },
+            { key: "long", text: "Long-form", section: "Labels" }
+        ]
+        resultCount: library.shown; totalCount: library.total
+        onTextEdited: library.setSearch(text)
+        onCleared: library.setSearch("")
+        onFilterToggled: (key, active) => library.setFilter(key, active)
+    }
+    SuiList { ... }
+}
+```
+
+- Everything is `SuiTheme.controlHeightSm` (24 px) high: the search is a compact
+  `SuiSearchField` (`searchField`), and the funnel button matches it.
+- `focusShortcut` ("Ctrl+F", which Qt shows and matches as ⌘F on macOS; "" disables)
+  focuses and selects the search from anywhere in the window, another text field
+  included. Escape clears it, then propagates. Give one header per window the shortcut.
+- `activeFilters` (keys) is the header's: choosing in the menu updates it and emits
+  `filterToggled(key, active)` for each change (choosing in an `exclusive` section also
+  reports the option it turns off); the app may set it too. `clearFilters()` and the
+  menu's "Clear filters" empty it (`filtersCleared()`). `filters` and `activeFilters`
+  take JS arrays or Python lists.
+- While any filter is active the funnel is tinted (the checked look) and carries the
+  count; its accessible description names them ("2 active: Missing, Long-form"). The
+  button hides while `filters` is empty, and the count while `resultCount` is -1
+  (`countText` overrides "12 of 340").
+- The menu closes after each choice, as native menus do, and gives focus back to the
+  button (with its ring after keyboard use).
 
 ### Hideable sidebar
 

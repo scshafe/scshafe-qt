@@ -64,6 +64,13 @@ SPECS: dict[str, Spec] = {
         'SuiSearchField { objectName: "subject"; x: 40; y: 40; width: 220; text: "ada" }',
         R.EditableText, "Search", True,
     ),
+    # Tab reaches the search field (its ring); a click on the funnel opens the menu (test_list_header.py).
+    "SuiListHeader": Spec(
+        'SuiListHeader { objectName: "subject"; x: 20; y: 40; width: 360; text: "ada"; resultCount: 3; totalCount: 12;'
+        ' filters: [{ key: "a", text: "Missing", section: "Show" }, { key: "b", text: "Kept", section: "Show" }];'
+        ' activeFilters: ["a"] }',
+        R.ToolBar, "Search and filters", True,
+    ),
     "SuiChip": Spec('SuiChip { objectName: "subject"; x: 40; y: 40; text: "Receipts"; tone: "bucket1"; dot: true }',
                     R.StaticText, "Receipts"),
     "SuiChart": Spec(

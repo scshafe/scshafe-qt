@@ -255,6 +255,7 @@ QtObject {
     readonly property int controlPaddingX: 10     // .sui-button padding
     readonly property int controlPaddingY: 6
     readonly property int controlHeight: 28       // buttons, fields, icon buttons
+    readonly property int controlHeightSm: 24     // compact fields and their buttons (list headers)
     readonly property int rowHeight: 30           // sidebar items
     readonly property int listRowHeight: 52       // two-line list rows
     readonly property int chipHeight: 20
@@ -272,6 +273,8 @@ QtObject {
     readonly property int sliderTrackHeight: 4
     readonly property int sliderHandleSize: 16
     readonly property int menuMaxHeight: 320      // select popups
+    readonly property int menuMinWidth: 160       // menus (.sui-popover min-width)
+    readonly property int filterBadgeSize: 14     // the active-filter count on a filter button
     readonly property int progressHeight: 6       // progress bar track
     readonly property int meterThickness: 8       // level meter bar
     readonly property int meterPinSize: 10        // the pinned-level marker's knob

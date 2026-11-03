@@ -568,13 +568,44 @@ Window {
                         }
                         SuiButton { text: "Reset widths"; variant: "secondary"; onClicked: takesTable.columnWidths = ({}) }
                     }
+                    SuiListHeader {
+                        id: takesHeader
+                        objectName: "takesHeader"
+                        Layout.fillWidth: true
+                        Layout.leftMargin: SuiTheme.spaceMd
+                        Layout.rightMargin: SuiTheme.spaceMd
+                        Layout.bottomMargin: SuiTheme.spaceSm
+                        searchLabel: "Search takes"
+                        placeholderText: "Search take, speaker or script"
+                        filters: [
+                            { key: "Ada", text: "Ada", section: "Speaker", exclusive: true },
+                            { key: "Grace", text: "Grace", section: "Speaker", exclusive: true },
+                            { key: "Alan", text: "Alan", section: "Speaker", exclusive: true },
+                            { key: "lowSnr", text: "SNR below 12 dB", section: "Quality" },
+                            { key: "best", text: "Score above 0.9", section: "Quality" }
+                        ]
+                        resultCount: takesTable.rowCount
+                        totalCount: root.takes.length
+                        countText: resultCount.toLocaleString() + " of " + totalCount.toLocaleString()
+                        // ⌘F / Ctrl+F (the header's default) focuses the search.
+                        readonly property var shown: {
+                            const needle = text.trim().toLowerCase()
+                            const active = activeFilters
+                            const speaker = ["Ada", "Grace", "Alan"].find(k => active.indexOf(k) >= 0)
+                            return root.takes.filter(t =>
+                                (speaker === undefined || t.speaker === speaker)
+                                && (active.indexOf("lowSnr") < 0 || t.snr < 12)
+                                && (active.indexOf("best") < 0 || t.score > 0.9)
+                                && (needle === "" || (t.take + " " + t.speaker + " " + t.script).toLowerCase().includes(needle)))
+                        }
+                    }
                     SuiTable {
                         id: takesTable
                         objectName: "takesTable"
                         Layout.fillWidth: true
                         Layout.fillHeight: true
                         label: "Takes"
-                        rows: root.takes
+                        rows: takesHeader.shown
                         rowKey: "id"
                         selectionMode: "multiple"
                         columns: [
@@ -949,6 +980,7 @@ Window {
             { group: "Sorting", keys: ["1", "8"], separator: "–", description: "Sort into bucket 1–8" },
             { group: "Sorting", keys: ["w"], description: "Always for this sender" },
             { group: "Search", keys: ["/"], description: "Search mail" },
+            { group: "Search", keys: ["Ctrl", "F"], description: "Search takes (Table page)" },
             { group: "View", keys: ["Ctrl", "Meta", "S"], description: "Dock or hide the sidebar" },
             { group: "Help", keys: ["?"], description: "Show this list" }
         ]
