@@ -98,6 +98,8 @@ Window {
             SuiInfoTip { title: "Trim"; text: "Keep <b>part</b> of the take."; Component.onCompleted: built++ }
             SuiTextField { label: "Note"; Component.onCompleted: built++ }
             SuiSearchField { Component.onCompleted: built++ }
+            SuiListHeader { width: 300; filters: [{ key: "a", text: "A" }]; activeFilters: ["a"]; resultCount: 3
+                            Component.onCompleted: built++ }
             SuiChip { text: "Receipts"; tone: "bucket1"; Component.onCompleted: built++ }
             SuiBadge { count: 3; Component.onCompleted: built++ }
             SuiKbd { text: "K"; Component.onCompleted: built++ }
@@ -118,7 +120,7 @@ Window {
     SuiShortcutOverlay { shortcuts: [{ keys: ["?"], description: "Help" }]; Component.onCompleted: built++ }
 }
 """
-SMOKE_COMPONENTS = 34  # public components in qmldir, each built once above
+SMOKE_COMPONENTS = 35  # public components in qmldir, each built once above
 
 
 def one(dist: Path, pattern: str) -> Path:

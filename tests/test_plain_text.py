@@ -100,6 +100,9 @@ def _scene(port: int) -> str:
             SuiBanner {{ title: root.p; text: root.p }}
             SuiToast {{ title: root.p; text: root.p; actionText: root.p; timeout: 0 }}
             SuiTextField {{ label: "x"; placeholderText: root.p }}
+            SuiListHeader {{ id: header; width: 300; label: root.p; searchLabel: root.p; placeholderText: root.p
+                resultCount: 1; countText: root.p; filterLabel: root.p; clearFiltersText: root.p
+                filters: [{{ key: "a", text: root.p, section: root.p }}]; activeFilters: ["a"] }}
             SuiTrail {{ width: 300
                 steps: [{{ title: root.p, outcome: root.p, via: root.p, detail: root.p, warningText: root.p }}] }}
         }}
@@ -110,7 +113,7 @@ def _scene(port: int) -> str:
     SuiSheet {{ id: sheet; title: root.p; description: root.p }}
     SuiShortcutOverlay {{ id: overlay
         shortcuts: [{{ group: root.p, keys: [root.p], description: root.p }}] }}
-    Component.onCompleted: {{ host.show(root.p); dialog.open(); sheet.open(); overlay.open(); select.popup.open(); tip.open() }}
+    Component.onCompleted: {{ host.show(root.p); dialog.open(); sheet.open(); overlay.open(); select.popup.open(); tip.open(); header.openFilters() }}
     """
 
 

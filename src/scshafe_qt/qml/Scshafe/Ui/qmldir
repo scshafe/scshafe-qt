@@ -16,6 +16,7 @@ SuiInfoTip 1.0 SuiInfoTip.qml
 SuiKbd 1.0 SuiKbd.qml
 SuiLevelMeter 1.0 SuiLevelMeter.qml
 SuiList 1.0 SuiList.qml
+SuiListHeader 1.0 SuiListHeader.qml
 SuiListRow 1.0 SuiListRow.qml
 SuiProgressBar 1.0 SuiProgressBar.qml
 SuiRadioButton 1.0 SuiRadioButton.qml

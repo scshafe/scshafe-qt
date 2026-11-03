@@ -3,7 +3,8 @@
 // The focus ring shows whenever the field has focus, from the keyboard or the
 // pointer: browsers match `:focus-visible` on text inputs for both, because
 // the caret alone is a weak indicator. `label` is the accessible name when the
-// field has no visible label (falls back to the placeholder).
+// field has no visible label (falls back to the placeholder). `compact`:
+// SuiTheme.controlHeightSm high in SuiTheme.fontSizeSm (list headers, toolbars).
 import QtQuick
 import QtQuick.Templates as T
 
@@ -11,6 +12,7 @@ T.TextField {
     id: control
 
     property string label: ""
+    property bool compact: false
 
     implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset,
                             contentWidth + leftPadding + rightPadding,
@@ -20,13 +22,13 @@ T.TextField {
 
     leftPadding: SuiTheme.spaceSm
     rightPadding: SuiTheme.spaceSm
-    topPadding: SuiTheme.spaceXs
-    bottomPadding: SuiTheme.spaceXs
+    topPadding: compact ? SuiTheme.spaceXs / 2 : SuiTheme.spaceXs
+    bottomPadding: topPadding
     verticalAlignment: TextInput.AlignVCenter
     hoverEnabled: true
     opacity: enabled ? 1 : SuiTheme.disabledOpacity
 
-    font.pixelSize: SuiTheme.fontSizeMd
+    font.pixelSize: compact ? SuiTheme.fontSizeSm : SuiTheme.fontSizeMd
     color: SuiTheme.text
     selectionColor: SuiTheme.alpha(SuiTheme.accent, 0.32)
     selectedTextColor: SuiTheme.textStrong
@@ -56,7 +58,7 @@ T.TextField {
     background: Rectangle {
         objectName: "background"
         implicitWidth: 200
-        implicitHeight: SuiTheme.controlHeight
+        implicitHeight: control.compact ? SuiTheme.controlHeightSm : SuiTheme.controlHeight
         radius: SuiTheme.radiusSm
         color: SuiTheme.field
         border.width: 1

@@ -23,6 +23,13 @@ Item {
         spacing: 8
 
         SuiSearchField { id: search; width: 240 }
+        SuiListHeader {
+            id: listHeader
+            width: 300
+            focusShortcut: "Ctrl+Shift+F"
+            filters: [{ key: "a", text: "Missing", section: "Show", exclusive: true },
+                      { key: "b", text: "Kept", section: "Show", exclusive: true }, { key: "c", text: "Long" }]
+        }
         SuiIconButton { id: iconButton; label: "Dismiss"; icon.name: "close" }
         SuiInfoTip { id: infoTip; title: "Trim"; text: "Keep <b>part</b> of the take." }
         SuiChip { id: chip; text: "Receipts"; tone: "bucket1" }
@@ -155,6 +162,7 @@ Item {
     SignalSpy { id: seekSpy; target: wave; signalName: "seekRequested" }
     SignalSpy { id: trimSpy; target: wave; signalName: "trimChanged" }
     SignalSpy { id: playSpy; target: wave; signalName: "playRequested" }
+    SignalSpy { id: filterSpy; target: listHeader; signalName: "filterToggled" }
 
     TestCase {
         name: "SuiComponents"
@@ -164,7 +172,7 @@ Item {
             SuiTheme.mode = "light"
             SuiTheme.reducedMotion = true
             for (const spy of [nextSpy, activatedSpy, sidebarSpy, hookSpy, rejectedSpy, toggledSpy,
-                               activatedSelectSpy, movedSpy, cancelSpy, pinSpy, tableSpy, seekSpy, trimSpy, playSpy])
+                               activatedSelectSpy, movedSpy, cancelSpy, pinSpy, tableSpy, seekSpy, trimSpy, playSpy, filterSpy])
                 spy.clear()
             root.forceActiveFocus(Qt.OtherFocusReason)
         }
@@ -408,6 +416,25 @@ Item {
             compare(sidebarSpy.count, 1)
             compare(sidebar.selectedIndex, 1)
             compare(sidebar.currentItem.Accessible.description, "3 items, held")
+        }
+
+        function test_list_header_filters_and_shortcut() {
+            compare(listHeader.Accessible.role, Accessible.ToolBar)
+            compare(listHeader.searchField.height, SuiTheme.controlHeightSm)
+            opener.forceActiveFocus(Qt.TabFocusReason)
+            keyClick(Qt.Key_F, Qt.ControlModifier | Qt.ShiftModifier)
+            verify(listHeader.searchField.activeFocus)
+            listHeader.toggleFilter("a")
+            listHeader.toggleFilter("b")  // exclusive: turns "a" off
+            listHeader.toggleFilter("c")
+            compare(listHeader.activeFilters, ["b", "c"])
+            compare(filterSpy.count, 4)
+            compare(filterSpy.signalArguments[1][0], "a")
+            compare(filterSpy.signalArguments[1][1], false)
+            verify(findChild(listHeader, "filterBadge").visible)
+            listHeader.clearFilters()
+            compare(listHeader.filterCount, 0)
+            verify(!findChild(listHeader, "filterBadge").visible)
         }
 
         function test_slash_focuses_search() {
