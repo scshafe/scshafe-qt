@@ -74,6 +74,7 @@ Window {
     function openDialog() { dialog.open() }
     SuiAppShell {
         anchors.fill: parent
+        sidebarHideable: true
         Component.onCompleted: built++
         sidebar: SuiSidebarList { model: [{ text: "Unsorted", count: 1, status: "ok" }]; Component.onCompleted: built++ }
         content: Column {

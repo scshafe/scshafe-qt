@@ -121,6 +121,9 @@ Window {
         objectName: "shell"
         anchors.fill: parent
         inspectorOpen: inspectorToggle.checked
+        // Pin to hide; hover the content's top-left corner to peek; ⌃⌘S (Ctrl+Super+S) toggles.
+        sidebarHideable: true
+        sidebarShortcut: "Ctrl+Meta+S"
 
         sidebar: SuiSidebarList {
             id: sidebar
@@ -946,6 +949,7 @@ Window {
             { group: "Sorting", keys: ["1", "8"], separator: "–", description: "Sort into bucket 1–8" },
             { group: "Sorting", keys: ["w"], description: "Always for this sender" },
             { group: "Search", keys: ["/"], description: "Search mail" },
+            { group: "View", keys: ["Ctrl", "Meta", "S"], description: "Dock or hide the sidebar" },
             { group: "Help", keys: ["?"], description: "Show this list" }
         ]
     }
